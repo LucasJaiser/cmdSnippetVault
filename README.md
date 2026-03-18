@@ -13,4 +13,10 @@ just
 ## Commands
 ```
 just lint #Runt Linter
+just build
+just clean
+just test
+just install
+just coverage
+
 ```
