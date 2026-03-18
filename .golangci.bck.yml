@@ -1,0 +1,18 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck # checks you're not ignoring returned errors
+    - govet # reports suspicious constructs (like printf arg mismatches)
+    - staticcheck # advanced static analysis (unused code, deprecated APIs, etc.)
+    - unused # finds unused variables, functions, types
+    - gosimple # suggests simpler code constructs
+    - ineffassign # detects assignments to variables that are never read
+    - misspell # catches typos in comments and strings
+    - gofmt # enforces standard formatting
+    - goimports # enforces import grouping and ordering
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
