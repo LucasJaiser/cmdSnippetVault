@@ -2,7 +2,7 @@ lint:
 	golangci-lint run ./...
 
 build:
-	go build -o bin/cmdSnipperVault ./cmd/cmdSnipperVault
+	go build -o ./bin/csv ./cmd/cmdSnipperVault
 
 test:
 	go test -race -coverprofile=coverage.out ./...
