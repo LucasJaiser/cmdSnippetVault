@@ -1,3 +1,5 @@
+MIGRATE := 'migrate -path internal/storage/sqlite/migrations -database "sqlite://cmdvault.db"'
+
 lint:
 	golangci-lint run ./...
 
@@ -15,3 +17,9 @@ install:
 
 clean:
 	rm -rf ./bin coverage.out
+
+migrate-up:
+	{{MIGRATE}} up
+
+migrate-down:
+	{{MIGRATE}} down

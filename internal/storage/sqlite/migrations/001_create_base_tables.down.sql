@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS snippets;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS snippet_tags;

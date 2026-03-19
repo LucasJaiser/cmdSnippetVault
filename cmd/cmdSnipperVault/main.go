@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"lucasjaiser/goSnipperVault/internal/storage/sqlite"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	repo, err := sqlite.New("cmdvault.db")
+	if err != nil {
+		fmt.Printf("Error occured: %s", err.Error())
+		return
+	}
+
+	defer repo.Close()
 }
