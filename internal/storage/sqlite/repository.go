@@ -57,7 +57,7 @@ func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) 
 	if err != nil {
 		return fmt.Errorf("could not create transaction: %s", err.Error())
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
 	snippetResult, err := tx.ExecContext(ctx, "INSERT INTO snippets (`command`, `description`) VALUES (?, ?)", snippet.Command, snippet.Description)
 
@@ -185,7 +185,7 @@ func (r *SQLiteRepository) Update(ctx context.Context, snippet *domain.Snippet) 
 	if err != nil {
 		return fmt.Errorf("could not create transaction: %s", err.Error())
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
 	//Check if Snippets exits in Database
 	_, err = r.GetByID(ctx, snippet.ID)
