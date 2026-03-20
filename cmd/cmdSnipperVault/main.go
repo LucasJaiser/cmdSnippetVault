@@ -8,7 +8,7 @@ import (
 func main() {
 	repo, err := sqlite.New("cmdvault.db")
 	if err != nil {
-		fmt.Printf("Error occured: %s", err.Error())
+		fmt.Printf("error occurred: %s", err.Error())
 		return
 	}
 

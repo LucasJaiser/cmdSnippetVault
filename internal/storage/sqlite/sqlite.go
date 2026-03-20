@@ -17,7 +17,7 @@ func New(db_path string) (*SQLiteRepository, error) {
 
 	if err := db.Ping(); err != nil {
 
-		return nil, fmt.Errorf("Could not Ping Database: %s", err.Error())
+		return nil, fmt.Errorf("could not Ping Database: %s", err.Error())
 	}
 
 	repo := &SQLiteRepository{
@@ -27,7 +27,7 @@ func New(db_path string) (*SQLiteRepository, error) {
 	}
 
 	if err := repo.Migrate(); err != nil {
-		return nil, fmt.Errorf("Could not migrate database: %s", err.Error())
+		return nil, fmt.Errorf("could not migrate database: %s", err.Error())
 	}
 
 	return repo, nil
