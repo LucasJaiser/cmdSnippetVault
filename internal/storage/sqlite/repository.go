@@ -92,7 +92,7 @@ func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) 
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("Could not commit statements %s", err.Error())
+		return fmt.Errorf("could not commit statements %s", err.Error())
 	}
 
 	snippet.ID = snippetID
@@ -148,7 +148,7 @@ func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) (
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("Could not Query snipppets: %s", err.Error())
+		return nil, fmt.Errorf("could not Query snipppets: %s", err.Error())
 	}
 	defer rows.Close()
 
