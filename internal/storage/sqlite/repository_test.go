@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"lucasjaiser/goSnipperVault/internal/domain"
 	"os"
@@ -566,9 +567,373 @@ func TestDelete_CascadesSnippetTags(t *testing.T) {
 	assert.Equal(t, 0, count)
 }
 
+func beginTestTx(t *testing.T, repo *SQLiteRepository) *sql.Tx {
+	t.Helper()
+	tx, err := repo.db.BeginTx(context.Background(), nil)
+	require.NoError(t, err)
+	return tx
+}
+
+func createTestTag(t *testing.T, repo *SQLiteRepository, name string) int64 {
+	t.Helper()
+	tx := beginTestTx(t, repo)
+	tag, err := repo.createOrGetTag(context.Background(), name, tx)
+	require.NoError(t, err)
+	require.NoError(t, tx.Commit())
+	return tag.ID
+}
+
+func TestListTags(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, repo *SQLiteRepository)
+		check func(t *testing.T, tags []domain.TagWithCount)
+	}{
+		{
+			name:  "returns empty slice when no tags exist",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			check: func(t *testing.T, tags []domain.TagWithCount) {
+				assert.Empty(t, tags)
+			},
+		},
+		{
+			name: "returns tags with snippet counts",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "docker ps", "containers", []string{"docker"})
+				createTestSnippet(t, repo, "docker logs", "logs", []string{"docker"})
+				createTestSnippet(t, repo, "git status", "status", []string{"git"})
+			},
+			check: func(t *testing.T, tags []domain.TagWithCount) {
+				require.Len(t, tags, 2)
+				assert.Equal(t, "docker", tags[0].Name)
+				assert.Equal(t, 2, tags[0].Count)
+				assert.Equal(t, "git", tags[1].Name)
+				assert.Equal(t, 1, tags[1].Count)
+			},
+		},
+		{
+			name: "returns tags ordered alphabetically",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "cmd1", "desc", []string{"zulu"})
+				createTestSnippet(t, repo, "cmd2", "desc", []string{"alpha"})
+				createTestSnippet(t, repo, "cmd3", "desc", []string{"mike"})
+			},
+			check: func(t *testing.T, tags []domain.TagWithCount) {
+				require.Len(t, tags, 3)
+				assert.Equal(t, "alpha", tags[0].Name)
+				assert.Equal(t, "mike", tags[1].Name)
+				assert.Equal(t, "zulu", tags[2].Name)
+			},
+		},
+		{
+			name: "counts only linked snippets",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				s := createTestSnippet(t, repo, "cmd", "desc", []string{"keep", "remove"})
+				s.Tags = []string{"keep"}
+				err := repo.Update(context.Background(), s)
+				require.NoError(t, err)
+			},
+			check: func(t *testing.T, tags []domain.TagWithCount) {
+				for _, tag := range tags {
+					if tag.Name == "keep" {
+						assert.Equal(t, 1, tag.Count)
+					}
+					if tag.Name == "remove" {
+						assert.Equal(t, 0, tag.Count)
+					}
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := setupTestDB(t)
+			tt.setup(t, repo)
+
+			tags, err := repo.ListTags(context.Background())
+			require.NoError(t, err)
+			tt.check(t, tags)
+		})
+	}
+}
+
+func TestLinkTag(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, repo *SQLiteRepository) (int, int)
+		wantErr bool
+		check   func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int)
+	}{
+		{
+			name: "links tag to snippet",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				snippet := createTestSnippet(t, repo, "cmd", "desc", nil)
+				tagID := createTestTag(t, repo, "newtag")
+				return int(tagID), int(snippet.ID)
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int) {
+				tags, err := repo.getTagsForSnippet(context.Background(), int64(snippetID))
+				require.NoError(t, err)
+				assert.Contains(t, tags, "newtag")
+			},
+		},
+		{
+			name: "duplicate link returns error",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				snippet := createTestSnippet(t, repo, "cmd", "desc", []string{"existing"})
+				tagID := createTestTag(t, repo, "existing")
+				return int(tagID), int(snippet.ID)
+			},
+			wantErr: true,
+		},
+		{
+			name: "links multiple tags to same snippet",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				snippet := createTestSnippet(t, repo, "cmd", "desc", []string{"first"})
+				tagID := createTestTag(t, repo, "second")
+				return int(tagID), int(snippet.ID)
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int) {
+				tags, err := repo.getTagsForSnippet(context.Background(), int64(snippetID))
+				require.NoError(t, err)
+				assert.ElementsMatch(t, []string{"first", "second"}, tags)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := setupTestDB(t)
+			tagID, snippetID := tt.setup(t, repo)
+
+			tx := beginTestTx(t, repo)
+			err := repo.linkTag(context.Background(), tagID, snippetID, tx)
+			if tt.wantErr {
+				assert.Error(t, err)
+				tx.Rollback() //nolint:errcheck
+				return
+			}
+			require.NoError(t, err)
+			require.NoError(t, tx.Commit())
+			if tt.check != nil {
+				tt.check(t, repo, tagID, snippetID)
+			}
+		})
+	}
+}
+
+func TestUnlinkTag(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, repo *SQLiteRepository) (int, int)
+		check func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int)
+	}{
+		{
+			name: "removes link between tag and snippet",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				snippet := createTestSnippet(t, repo, "cmd", "desc", []string{"removeme"})
+				tagID := createTestTag(t, repo, "removeme")
+				return int(tagID), int(snippet.ID)
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int) {
+				tags, err := repo.getTagsForSnippet(context.Background(), int64(snippetID))
+				require.NoError(t, err)
+				assert.Empty(t, tags)
+			},
+		},
+		{
+			name: "no error when unlinking nonexistent link",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				return 9999, 9999
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int) {
+				// Should succeed silently — DELETE affects zero rows
+			},
+		},
+		{
+			name: "only removes specified tag, keeps others",
+			setup: func(t *testing.T, repo *SQLiteRepository) (int, int) {
+				snippet := createTestSnippet(t, repo, "cmd", "desc", []string{"keep", "remove"})
+				tagID := createTestTag(t, repo, "remove")
+				return int(tagID), int(snippet.ID)
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, tagID int, snippetID int) {
+				tags, err := repo.getTagsForSnippet(context.Background(), int64(snippetID))
+				require.NoError(t, err)
+				assert.Equal(t, []string{"keep"}, tags)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := setupTestDB(t)
+			tagID, snippetID := tt.setup(t, repo)
+
+			tx := beginTestTx(t, repo)
+			err := repo.unlinkTag(context.Background(), tagID, snippetID, tx)
+			require.NoError(t, err)
+			require.NoError(t, tx.Commit())
+			if tt.check != nil {
+				tt.check(t, repo, tagID, snippetID)
+			}
+		})
+	}
+}
+
 func TestMigrate_Idempotent(t *testing.T) {
 	repo := setupTestDB(t)
 	// Running migrate again should not error (ErrNoChange is swallowed)
 	err := repo.Migrate()
 	assert.NoError(t, err)
+}
+
+func TestNew_InvalidPath(t *testing.T) {
+	// Path with null byte is invalid for SQLite
+	_, err := New("/nonexistent/deeply/nested/\x00invalid/path/db.sqlite")
+	assert.Error(t, err)
+}
+
+func TestCreate_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	snippet := &domain.Snippet{Command: "test", Description: "test"}
+	err := repo.Create(ctx, snippet)
+	assert.Error(t, err)
+}
+
+func TestGetByID_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := repo.GetByID(ctx, 1)
+	assert.Error(t, err)
+}
+
+func TestList_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := repo.List(ctx, domain.ListFilter{})
+	assert.Error(t, err)
+}
+
+func TestUpdate_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	snippet := createTestSnippet(t, repo, "cmd", "desc", nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	snippet.Command = "updated"
+	err := repo.Update(ctx, snippet)
+	assert.Error(t, err)
+}
+
+func TestDelete_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := repo.Delete(ctx, 1)
+	assert.Error(t, err)
+}
+
+func TestSearch_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := repo.Search(ctx, "test")
+	assert.Error(t, err)
+}
+
+func TestListTags_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := repo.ListTags(ctx)
+	assert.Error(t, err)
+}
+
+func TestClose(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "close_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+
+	err = repo.Close()
+	assert.NoError(t, err)
+
+	// Operations after close should fail
+	_, err = repo.GetByID(context.Background(), 1)
+	assert.Error(t, err)
+}
+
+func TestCreate_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+	repo.Close()
+
+	snippet := &domain.Snippet{Command: "test", Description: "test", Tags: []string{"tag"}}
+	err = repo.Create(context.Background(), snippet)
+	assert.Error(t, err)
+}
+
+func TestUpdate_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+
+	snippet := &domain.Snippet{Command: "cmd", Description: "desc"}
+	err = repo.Create(context.Background(), snippet)
+	require.NoError(t, err)
+
+	repo.Close()
+
+	snippet.Command = "updated"
+	err = repo.Update(context.Background(), snippet)
+	assert.Error(t, err)
+}
+
+func TestList_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+	repo.Close()
+
+	_, err = repo.List(context.Background(), domain.ListFilter{})
+	assert.Error(t, err)
+}
+
+func TestSearch_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+	repo.Close()
+
+	_, err = repo.Search(context.Background(), "test")
+	assert.Error(t, err)
+}
+
+func TestListTags_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+	repo.Close()
+
+	_, err = repo.ListTags(context.Background())
+	assert.Error(t, err)
 }

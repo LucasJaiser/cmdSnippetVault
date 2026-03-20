@@ -12,12 +12,12 @@ func New(db_path string) (*SQLiteRepository, error) {
 	dsn := fmt.Sprintf("%s?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)", db_path)
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("could not Open SQLite File: %s", err.Error())
+		return nil, fmt.Errorf("could not Open SQLite File: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
 
-		return nil, fmt.Errorf("could not Ping Database: %s", err.Error())
+		return nil, fmt.Errorf("could not Ping Database: %w", err)
 	}
 
 	repo := &SQLiteRepository{
@@ -27,7 +27,7 @@ func New(db_path string) (*SQLiteRepository, error) {
 	}
 
 	if err := repo.Migrate(); err != nil {
-		return nil, fmt.Errorf("could not migrate database: %s", err.Error())
+		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
 	return repo, nil

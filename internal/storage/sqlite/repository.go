@@ -27,17 +27,17 @@ var migrations embed.FS
 func (r *SQLiteRepository) Migrate() error {
 	source, err := iofs.New(migrations, "migrations")
 	if err != nil {
-		return fmt.Errorf("could not read migrations: %s", err.Error())
+		return fmt.Errorf("could not read migrations: %w", err)
 	}
 
 	migrations_instance, err := migrate.NewWithSourceInstance("iofs", source, r.dsn)
 	if err != nil {
-		return fmt.Errorf("could not create migrations instance: %s", err.Error())
+		return fmt.Errorf("could not create migrations instance: %w", err)
 	}
 
 	err = migrations_instance.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("could not migrate up: %s", err.Error())
+		return fmt.Errorf("could not migrate up: %w", err)
 	}
 
 	return nil
@@ -46,7 +46,7 @@ func (r *SQLiteRepository) Migrate() error {
 func (r *SQLiteRepository) Close() error {
 	err := r.db.Close()
 	if err != nil {
-		return fmt.Errorf("could not close database: %s", err.Error())
+		return fmt.Errorf("could not close database: %w", err)
 	}
 
 	return nil
@@ -55,44 +55,38 @@ func (r *SQLiteRepository) Close() error {
 func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("could not create transaction: %s", err.Error())
+		return fmt.Errorf("could not create transaction: %w", err)
 	}
 	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
 	snippetResult, err := tx.ExecContext(ctx, "INSERT INTO snippets (`command`, `description`) VALUES (?, ?)", snippet.Command, snippet.Description)
 
 	if err != nil {
-		return fmt.Errorf("could not insert command: %s", err.Error())
+		return fmt.Errorf("could not insert command: %w", err)
 	}
 
 	snippetID, err := snippetResult.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("could not get last inserted id from command: %s", err.Error())
+		return fmt.Errorf("could not get last inserted id from command: %w", err)
 	}
 
-	for _, tag := range snippet.Tags {
+	for _, name := range snippet.Tags {
 
-		_, err := tx.ExecContext(ctx, "INSERT INTO tags (name) VALUES (?) ON CONFLICT (name) DO NOTHING", tag)
+		tag, err := r.createOrGetTag(ctx, name, tx)
 		if err != nil {
-			return fmt.Errorf("could not insert tag: %s", err.Error())
+			return fmt.Errorf("could not create or get tag: %w", err)
 		}
 
-		var tagID int64
-		err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
+		err = r.linkTag(ctx, int(tag.ID), int(snippetID), tx)
 		if err != nil {
-			return fmt.Errorf("could not get last inserted id from tag: %s", err.Error())
-		}
-
-		_, err = tx.ExecContext(ctx, "INSERT INTO snippet_tags (snippet_id, tag_id) VALUES(?, ?)", snippetID, tagID)
-		if err != nil {
-			return fmt.Errorf("could not insert snippet_tags: %s", err.Error())
+			return fmt.Errorf("could not link tag to snippet: %w", err)
 		}
 
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("could not commit statements %s", err.Error())
+		return fmt.Errorf("could not commit statements %w", err)
 	}
 
 	snippet.ID = snippetID
@@ -109,7 +103,7 @@ func (r *SQLiteRepository) GetByID(ctx context.Context, id int64) (*domain.Snipp
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrNotFound
 		}
-		return nil, fmt.Errorf("could not get snippet: %s", err.Error())
+		return nil, fmt.Errorf("could not get snippet: %w", err)
 	}
 
 	snippet.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
@@ -117,7 +111,7 @@ func (r *SQLiteRepository) GetByID(ctx context.Context, id int64) (*domain.Snipp
 
 	snippet.Tags, err = r.getTagsForSnippet(ctx, snippet.ID)
 	if err != nil {
-		return nil, fmt.Errorf("could not get tags for snippet: %s", err.Error())
+		return nil, fmt.Errorf("could not get tags for snippet: %w", err)
 	}
 
 	return &snippet, nil
@@ -148,7 +142,7 @@ func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) (
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("could not Query snipppets: %s", err.Error())
+		return nil, fmt.Errorf("could not Query snipppets: %w", err)
 	}
 	defer rows.Close()
 
@@ -157,7 +151,7 @@ func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) (
 		var snippet domain.Snippet
 		var createdAt, updatedAt string
 		if err := rows.Scan(&snippet.ID, &snippet.Command, &snippet.Description, &snippet.UseCount, &createdAt, &updatedAt); err != nil {
-			return nil, fmt.Errorf("could not scan snippet row: %s", err.Error())
+			return nil, fmt.Errorf("could not scan snippet row: %w", err)
 		}
 		snippet.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
 		snippet.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
@@ -167,7 +161,7 @@ func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) (
 	for i := range snippets {
 		tags, err := r.getTagsForSnippet(ctx, snippets[i].ID)
 		if err != nil {
-			return nil, fmt.Errorf("could get tags for snippet: %s", err.Error())
+			return nil, fmt.Errorf("could get tags for snippet: %w", err)
 		}
 		snippets[i].Tags = tags
 	}
@@ -183,7 +177,7 @@ func (r *SQLiteRepository) Update(ctx context.Context, snippet *domain.Snippet) 
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("could not create transaction: %s", err.Error())
+		return fmt.Errorf("could not create transaction: %w", err)
 	}
 	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
@@ -195,34 +189,29 @@ func (r *SQLiteRepository) Update(ctx context.Context, snippet *domain.Snippet) 
 
 	_, err = tx.ExecContext(ctx, "UPDATE snippets SET command = ?, description = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), use_count = ? WHERE id = ?", snippet.Command, snippet.Description, snippet.UseCount, snippet.ID)
 	if err != nil {
-		return fmt.Errorf("could not update snippet: %s", err.Error())
+		return fmt.Errorf("could not update snippet: %w", err)
 	}
 	_, err = tx.ExecContext(ctx, "DELETE FROM snippet_tags WHERE snippet_id = ?", snippet.ID)
 	if err != nil {
-		return fmt.Errorf("could not delete snippet: %s", err.Error())
+		return fmt.Errorf("could not delete snippet: %w", err)
 	}
-	for _, tag := range snippet.Tags {
+	for _, name := range snippet.Tags {
 
-		_, err := tx.ExecContext(ctx, "INSERT INTO tags (`name`) VALUES (?) ON CONFLICT (name) DO NOTHING", tag)
+		tag, err := r.createOrGetTag(ctx, name, tx)
 		if err != nil {
-			return fmt.Errorf("could not insert tag: %s", err.Error())
+			return fmt.Errorf("could not create or get tag: %w", err)
 		}
 
-		var tagID int64
-		err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
+		err = r.linkTag(ctx, int(tag.ID), int(snippet.ID), tx)
 		if err != nil {
-			return fmt.Errorf("could not get last inserted id from tag: %s", err.Error())
+			return fmt.Errorf("could not link tag to snippet: %w", err)
 		}
 
-		_, err = tx.ExecContext(ctx, "INSERT INTO snippet_tags (snippet_id, tag_id) VALUES(?, ?)", snippet.ID, tagID)
-		if err != nil {
-			return fmt.Errorf("could not insert snipper_tags: %s", err.Error())
-		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("could not commit statemants %s", err.Error())
+		return fmt.Errorf("could not commit statemants %w", err)
 	}
 	return nil
 }
@@ -231,7 +220,7 @@ func (r *SQLiteRepository) getTagsForSnippet(ctx context.Context, id int64) ([]s
 
 	rows, err := r.db.QueryContext(ctx, "SELECT t.name FROM tags t JOIN snippet_tags st ON st.tag_id = t.id WHERE st.snippet_id = ?", id)
 	if err != nil {
-		return nil, fmt.Errorf("could not get corresponding tags: %s", err.Error())
+		return nil, fmt.Errorf("could not get corresponding tags: %w", err)
 	}
 
 	defer rows.Close()
@@ -239,7 +228,7 @@ func (r *SQLiteRepository) getTagsForSnippet(ctx context.Context, id int64) ([]s
 	for rows.Next() {
 		var tag string
 		if err := rows.Scan(&tag); err != nil {
-			return nil, fmt.Errorf("could not assign tag to variable: %s", err.Error())
+			return nil, fmt.Errorf("could not assign tag to variable: %w", err)
 		}
 		tags = append(tags, tag)
 	}
@@ -250,7 +239,7 @@ func (r *SQLiteRepository) Delete(ctx context.Context, id int64) error {
 
 	_, err := r.db.ExecContext(ctx, "DELETE FROM snippets WHERE id = ?", id)
 	if err != nil {
-		return fmt.Errorf("could not delete snippet: %s", err.Error())
+		return fmt.Errorf("could not delete snippet: %w", err)
 	}
 
 	return nil
@@ -318,4 +307,79 @@ func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]domain.S
 	}
 
 	return snippets, nil
+}
+
+func (r *SQLiteRepository) ListTags(ctx context.Context) ([]domain.TagWithCount, error) {
+	rows, err := r.db.QueryContext(ctx, `
+                SELECT t.name, COUNT(st.snippet_id)
+                FROM tags t
+                LEFT JOIN snippet_tags st ON st.tag_id = t.id
+                GROUP BY t.id, t.name
+                ORDER BY t.name`)
+	if err != nil {
+		return nil, fmt.Errorf("sqlite: list tags: %w", err)
+	}
+	defer rows.Close()
+
+	var tags []domain.TagWithCount
+	for rows.Next() {
+		var tc domain.TagWithCount
+		if err := rows.Scan(&tc.Name, &tc.Count); err != nil {
+			return nil, fmt.Errorf("sqlite: scan tag: %w", err)
+		}
+		tags = append(tags, tc)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("sqlite: list tags rows: %w", err)
+	}
+	return tags, nil
+}
+
+func (r *SQLiteRepository) createOrGetTag(ctx context.Context, name string, tx *sql.Tx) (*domain.Tag, error) {
+
+	var tag domain.Tag
+	err := tx.QueryRowContext(ctx, "SELECT id, name FROM tags WHERE name = ?", name).Scan(&tag.ID, &tag.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			_, err := tx.ExecContext(ctx, "INSERT INTO tags (name) VALUES(?) ON CONFLICT (name) DO NOTHING", name)
+			if err != nil {
+				return nil, fmt.Errorf("could not insert tag: %w", err)
+			}
+
+			var id int64
+			err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", name).Scan(&id)
+			if err != nil {
+				return nil, fmt.Errorf("could not get last inserted id from tag: %w", err)
+			}
+
+			tag.ID = id
+			tag.Name = name
+
+			return &tag, nil
+
+		}
+		return nil, fmt.Errorf("could not get tag: %w", err)
+
+	}
+
+	return &tag, nil
+}
+
+func (r *SQLiteRepository) linkTag(ctx context.Context, tag_id int, snippet_id int, tx *sql.Tx) error {
+	_, err := tx.ExecContext(ctx, "INSERT INTO snippet_tags (tag_id, snippet_id) VALUES (?, ?)", tag_id, snippet_id)
+	if err != nil {
+		return fmt.Errorf("could not link tag to snippet: %w", err)
+	}
+
+	return nil
+}
+
+func (r *SQLiteRepository) unlinkTag(ctx context.Context, tag_id int, snippet_id int, tx *sql.Tx) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM snippet_tags WHERE tag_id = ? AND snippet_id = ?", tag_id, snippet_id)
+
+	if err != nil {
+		return fmt.Errorf("could not unlink tag to snippet: %w", err)
+	}
+
+	return nil
 }
