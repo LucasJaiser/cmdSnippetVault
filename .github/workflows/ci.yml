@@ -1,4 +1,4 @@
-name: test
+name: ci
 on:
   push:
     branches:
@@ -11,6 +11,19 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.10
+
   test:
     name: test
     runs-on: ubuntu-latest
