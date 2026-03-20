@@ -413,6 +413,145 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestSearch(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, repo *SQLiteRepository)
+		query string
+		check func(t *testing.T, snippets []domain.Snippet)
+	}{
+		{
+			name:  "returns empty slice for empty query",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			query: "",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				assert.Empty(t, snippets)
+			},
+		},
+		{
+			name:  "returns empty slice when no snippets exist",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			query: "git",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				assert.Empty(t, snippets)
+			},
+		},
+		{
+			name: "matches exact command",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "git status", "check working tree", []string{"git"})
+				createTestSnippet(t, repo, "docker ps", "list containers", []string{"docker"})
+			},
+			query: "git status",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 1)
+				assert.Equal(t, "git status", snippets[0].Command)
+			},
+		},
+		{
+			name: "matches command substring",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "git status", "check working tree", nil)
+				createTestSnippet(t, repo, "git log --oneline", "short log", nil)
+				createTestSnippet(t, repo, "docker ps", "list containers", nil)
+			},
+			query: "git",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				assert.Len(t, snippets, 2)
+			},
+		},
+		{
+			name: "matches description",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "kubectl get pods", "list running containers", nil)
+				createTestSnippet(t, repo, "ls -la", "list files", nil)
+			},
+			query: "containers",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 1)
+				assert.Equal(t, "kubectl get pods", snippets[0].Command)
+			},
+		},
+		{
+			name: "matches tag name",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "helm install", "deploy chart", []string{"kubernetes"})
+				createTestSnippet(t, repo, "ls -la", "list files", []string{"filesystem"})
+			},
+			query: "kubernetes",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 1)
+				assert.Equal(t, "helm install", snippets[0].Command)
+			},
+		},
+		{
+			name: "is case insensitive",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "Docker Build .", "build image", []string{"docker"})
+			},
+			query: "docker",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 1)
+				assert.Equal(t, "Docker Build .", snippets[0].Command)
+			},
+		},
+		{
+			name: "includes tags in results",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "git push", "push changes", []string{"git", "remote"})
+			},
+			query: "push",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 1)
+				assert.ElementsMatch(t, []string{"git", "remote"}, snippets[0].Tags)
+			},
+		},
+		{
+			name: "returns no duplicates when matching command and tag",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "docker ps", "list docker containers", []string{"docker"})
+			},
+			query: "docker",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				assert.Len(t, snippets, 1)
+			},
+		},
+		{
+			name: "ranks exact command match above substring",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "git log --oneline", "short log", nil)
+				createTestSnippet(t, repo, "git", "base git command", nil)
+			},
+			query: "git",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				require.Len(t, snippets, 2)
+				assert.Equal(t, "git", snippets[0].Command)
+			},
+		},
+		{
+			name: "returns no results for unmatched query",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "git status", "check status", []string{"git"})
+			},
+			query: "nonexistent",
+			check: func(t *testing.T, snippets []domain.Snippet) {
+				assert.Empty(t, snippets)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := setupTestDB(t)
+			tt.setup(t, repo)
+
+			snippets, err := repo.Search(context.Background(), tt.query)
+			require.NoError(t, err)
+			tt.check(t, snippets)
+		})
+	}
+}
+
 func TestDelete_CascadesSnippetTags(t *testing.T) {
 	repo := setupTestDB(t)
 	snippet := createTestSnippet(t, repo, "cmd", "desc", []string{"tag1"})

@@ -257,5 +257,65 @@ func (r *SQLiteRepository) Delete(ctx context.Context, id int64) error {
 }
 
 func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]domain.Snippet, error) {
-	return nil, nil
+	if query == "" {
+		return []domain.Snippet{}, nil
+	}
+
+	rows, err := r.db.QueryContext(ctx, `
+    SELECT DISTINCT s.id, s.command, s.description, s.use_count, s.created_at, s.updated_at,
+        CASE
+            WHEN s.command = ? THEN 100
+            WHEN s.command LIKE ? COLLATE NOCASE THEN 80
+            WHEN s.command LIKE ? COLLATE NOCASE THEN 60
+            WHEN s.description LIKE ? COLLATE NOCASE THEN 40
+            WHEN t.name LIKE ? COLLATE NOCASE THEN 20
+            ELSE 0
+        END AS relevance
+    FROM snippets s
+    LEFT JOIN snippet_tags st ON st.snippet_id = s.id
+    LEFT JOIN tags t ON t.id = st.tag_id
+    WHERE s.command LIKE ? COLLATE NOCASE
+       OR s.description LIKE ? COLLATE NOCASE
+       OR t.name LIKE ? COLLATE NOCASE
+    ORDER BY relevance DESC, s.use_count DESC
+`, query,
+		query+"%",
+		"%"+query+"%",
+		"%"+query+"%",
+		"%"+query+"%",
+		"%"+query+"%",
+		"%"+query+"%",
+		"%"+query+"%",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlite: search: %w", err)
+	}
+	defer rows.Close()
+
+	var snippets []domain.Snippet
+	for rows.Next() {
+		var s domain.Snippet
+		var createdAt, updatedAt string
+		var relevance int
+		if err := rows.Scan(&s.ID, &s.Command, &s.Description, &s.UseCount, &createdAt, &updatedAt, &relevance); err != nil {
+			return nil, fmt.Errorf("sqlite: scan search result: %w", err)
+		}
+		s.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+		s.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAt)
+		snippets = append(snippets, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("sqlite: search rows: %w", err)
+	}
+
+	// load tags for each result
+	for i := range snippets {
+		tags, err := r.getTagsForSnippet(ctx, snippets[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		snippets[i].Tags = tags
+	}
+
+	return snippets, nil
 }
