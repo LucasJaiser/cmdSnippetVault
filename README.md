@@ -1,4 +1,4 @@
-![example workflow](https://github.com/LucasJaiser/cmdSnipperVault/actions/workflows/golangci-lint.yml/badge.svg)
+![example workflow](https://github.com/LucasJaiser/cmdSnipperVault/actions/workflows/ci.yml/badge.svg)
 # cmdSnipperVault
 
 
