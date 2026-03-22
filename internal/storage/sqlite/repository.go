@@ -117,7 +117,7 @@ func (r *SQLiteRepository) GetByID(ctx context.Context, id int64) (*domain.Snipp
 	return &snippet, nil
 }
 
-func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) ([]domain.Snippet, error) {
+func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) ([]*domain.Snippet, error) {
 	query := `SELECT s.id, s.command, s.description, s.use_count, s.created_at, s.updated_at FROM snippets s`
 	var args []any
 
@@ -146,9 +146,9 @@ func (r *SQLiteRepository) List(ctx context.Context, filter domain.ListFilter) (
 	}
 	defer rows.Close()
 
-	var snippets []domain.Snippet
+	var snippets []*domain.Snippet
 	for rows.Next() {
-		var snippet domain.Snippet
+		snippet := &domain.Snippet{}
 		var createdAt, updatedAt string
 		if err := rows.Scan(&snippet.ID, &snippet.Command, &snippet.Description, &snippet.UseCount, &createdAt, &updatedAt); err != nil {
 			return nil, fmt.Errorf("could not scan snippet row: %w", err)
@@ -245,9 +245,9 @@ func (r *SQLiteRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]domain.Snippet, error) {
+func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]*domain.Snippet, error) {
 	if query == "" {
-		return []domain.Snippet{}, nil
+		return []*domain.Snippet{}, nil
 	}
 
 	rows, err := r.db.QueryContext(ctx, `
@@ -281,9 +281,9 @@ func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]domain.S
 	}
 	defer rows.Close()
 
-	var snippets []domain.Snippet
+	var snippets []*domain.Snippet
 	for rows.Next() {
-		var s domain.Snippet
+		s := &domain.Snippet{}
 		var createdAt, updatedAt string
 		var relevance int
 		if err := rows.Scan(&s.ID, &s.Command, &s.Description, &s.UseCount, &createdAt, &updatedAt, &relevance); err != nil {
@@ -309,7 +309,7 @@ func (r *SQLiteRepository) Search(ctx context.Context, query string) ([]domain.S
 	return snippets, nil
 }
 
-func (r *SQLiteRepository) ListTags(ctx context.Context) ([]domain.TagWithCount, error) {
+func (r *SQLiteRepository) ListTags(ctx context.Context) ([]*domain.TagWithCount, error) {
 	rows, err := r.db.QueryContext(ctx, `
                 SELECT t.name, COUNT(st.snippet_id)
                 FROM tags t
@@ -321,9 +321,9 @@ func (r *SQLiteRepository) ListTags(ctx context.Context) ([]domain.TagWithCount,
 	}
 	defer rows.Close()
 
-	var tags []domain.TagWithCount
+	var tags []*domain.TagWithCount
 	for rows.Next() {
-		var tc domain.TagWithCount
+		tc := &domain.TagWithCount{}
 		if err := rows.Scan(&tc.Name, &tc.Count); err != nil {
 			return nil, fmt.Errorf("sqlite: scan tag: %w", err)
 		}

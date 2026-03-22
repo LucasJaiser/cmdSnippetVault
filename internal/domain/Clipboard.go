@@ -1,6 +1,6 @@
-package service
+package domain
 
 type Clipboard interface {
-	Copy(test string) error
+	Copy(string) error
 	IsAvailable() bool
 }

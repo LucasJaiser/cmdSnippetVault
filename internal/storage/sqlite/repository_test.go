@@ -318,13 +318,13 @@ func TestList(t *testing.T) {
 		name   string
 		setup  func(t *testing.T, repo *SQLiteRepository)
 		filter domain.ListFilter
-		check  func(t *testing.T, snippets []domain.Snippet)
+		check  func(t *testing.T, snippets []*domain.Snippet)
 	}{
 		{
 			name:   "returns empty list when no snippets exist",
 			setup:  func(t *testing.T, repo *SQLiteRepository) {},
 			filter: domain.ListFilter{},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Empty(t, snippets)
 			},
 		},
@@ -335,7 +335,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "cmd2", "desc2", nil)
 			},
 			filter: domain.ListFilter{},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 2)
 			},
 		},
@@ -347,7 +347,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "docker logs", "logs", []string{"docker"})
 			},
 			filter: domain.ListFilter{Tag: "docker"},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 2)
 				for _, s := range snippets {
 					assert.Contains(t, s.Command, "docker")
@@ -362,7 +362,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "cmd3", "desc3", nil)
 			},
 			filter: domain.ListFilter{Limit: 2},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 2)
 			},
 		},
@@ -374,7 +374,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "cmd3", "desc3", nil)
 			},
 			filter: domain.ListFilter{Limit: 10, Offset: 2},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 1)
 			},
 		},
@@ -384,7 +384,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "cmd1", "desc1", nil)
 			},
 			filter: domain.ListFilter{Limit: 0},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				// Should not fail — limit defaults to 50
 				assert.Len(t, snippets, 1)
 			},
@@ -395,7 +395,7 @@ func TestList(t *testing.T) {
 				createTestSnippet(t, repo, "cmd", "desc", []string{"tag1", "tag2"})
 			},
 			filter: domain.ListFilter{},
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.ElementsMatch(t, []string{"tag1", "tag2"}, snippets[0].Tags)
 			},
@@ -419,13 +419,13 @@ func TestSearch(t *testing.T) {
 		name  string
 		setup func(t *testing.T, repo *SQLiteRepository)
 		query string
-		check func(t *testing.T, snippets []domain.Snippet)
+		check func(t *testing.T, snippets []*domain.Snippet)
 	}{
 		{
 			name:  "returns empty slice for empty query",
 			setup: func(t *testing.T, repo *SQLiteRepository) {},
 			query: "",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Empty(t, snippets)
 			},
 		},
@@ -433,7 +433,7 @@ func TestSearch(t *testing.T) {
 			name:  "returns empty slice when no snippets exist",
 			setup: func(t *testing.T, repo *SQLiteRepository) {},
 			query: "git",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Empty(t, snippets)
 			},
 		},
@@ -444,7 +444,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "docker ps", "list containers", []string{"docker"})
 			},
 			query: "git status",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.Equal(t, "git status", snippets[0].Command)
 			},
@@ -457,7 +457,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "docker ps", "list containers", nil)
 			},
 			query: "git",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 2)
 			},
 		},
@@ -468,7 +468,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "ls -la", "list files", nil)
 			},
 			query: "containers",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.Equal(t, "kubectl get pods", snippets[0].Command)
 			},
@@ -480,7 +480,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "ls -la", "list files", []string{"filesystem"})
 			},
 			query: "kubernetes",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.Equal(t, "helm install", snippets[0].Command)
 			},
@@ -491,7 +491,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "Docker Build .", "build image", []string{"docker"})
 			},
 			query: "docker",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.Equal(t, "Docker Build .", snippets[0].Command)
 			},
@@ -502,7 +502,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "git push", "push changes", []string{"git", "remote"})
 			},
 			query: "push",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 1)
 				assert.ElementsMatch(t, []string{"git", "remote"}, snippets[0].Tags)
 			},
@@ -513,7 +513,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "docker ps", "list docker containers", []string{"docker"})
 			},
 			query: "docker",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Len(t, snippets, 1)
 			},
 		},
@@ -524,7 +524,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "git", "base git command", nil)
 			},
 			query: "git",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				require.Len(t, snippets, 2)
 				assert.Equal(t, "git", snippets[0].Command)
 			},
@@ -535,7 +535,7 @@ func TestSearch(t *testing.T) {
 				createTestSnippet(t, repo, "git status", "check status", []string{"git"})
 			},
 			query: "nonexistent",
-			check: func(t *testing.T, snippets []domain.Snippet) {
+			check: func(t *testing.T, snippets []*domain.Snippet) {
 				assert.Empty(t, snippets)
 			},
 		},
@@ -587,12 +587,12 @@ func TestListTags(t *testing.T) {
 	tests := []struct {
 		name  string
 		setup func(t *testing.T, repo *SQLiteRepository)
-		check func(t *testing.T, tags []domain.TagWithCount)
+		check func(t *testing.T, tags []*domain.TagWithCount)
 	}{
 		{
 			name:  "returns empty slice when no tags exist",
 			setup: func(t *testing.T, repo *SQLiteRepository) {},
-			check: func(t *testing.T, tags []domain.TagWithCount) {
+			check: func(t *testing.T, tags []*domain.TagWithCount) {
 				assert.Empty(t, tags)
 			},
 		},
@@ -603,7 +603,7 @@ func TestListTags(t *testing.T) {
 				createTestSnippet(t, repo, "docker logs", "logs", []string{"docker"})
 				createTestSnippet(t, repo, "git status", "status", []string{"git"})
 			},
-			check: func(t *testing.T, tags []domain.TagWithCount) {
+			check: func(t *testing.T, tags []*domain.TagWithCount) {
 				require.Len(t, tags, 2)
 				assert.Equal(t, "docker", tags[0].Name)
 				assert.Equal(t, 2, tags[0].Count)
@@ -618,7 +618,7 @@ func TestListTags(t *testing.T) {
 				createTestSnippet(t, repo, "cmd2", "desc", []string{"alpha"})
 				createTestSnippet(t, repo, "cmd3", "desc", []string{"mike"})
 			},
-			check: func(t *testing.T, tags []domain.TagWithCount) {
+			check: func(t *testing.T, tags []*domain.TagWithCount) {
 				require.Len(t, tags, 3)
 				assert.Equal(t, "alpha", tags[0].Name)
 				assert.Equal(t, "mike", tags[1].Name)
@@ -633,7 +633,7 @@ func TestListTags(t *testing.T) {
 				err := repo.Update(context.Background(), s)
 				require.NoError(t, err)
 			},
-			check: func(t *testing.T, tags []domain.TagWithCount) {
+			check: func(t *testing.T, tags []*domain.TagWithCount) {
 				for _, tag := range tags {
 					if tag.Name == "keep" {
 						assert.Equal(t, 1, tag.Count)
