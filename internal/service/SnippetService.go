@@ -97,6 +97,7 @@ func (s *SnippetService) GetAndCopy(ctx context.Context, id int64) error {
 	}
 
 	//copy To clipboard
+	fmt.Println("clipboard unavailable")
 
 	return err
 }

@@ -41,6 +41,10 @@ func Init() {
 	rootCmd.AddCommand(GetCommand)
 	rootCmd.AddCommand(ExecCommand)
 	rootCmd.AddCommand(ListCommand)
+
+	SearchCommand.Flags().BoolP("json", "j", false, "Output list of snippets as JSON")
+	SearchCommand.Flags().BoolP("pretty", "p", false, "Outputs json in a pretty format")
+	SearchCommand.Flags().IntP("limit", "l", 20, "Max number of shown Snippets")
 	rootCmd.AddCommand(SearchCommand)
 	rootCmd.AddCommand(DeleteCommand)
 

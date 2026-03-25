@@ -25,12 +25,12 @@ var GetCommand = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		noCopy, _ := cmd.Flags().GetBool("no-copy")
-		var snippet *domain.Snippet
-
 		if len(args) != 1 {
 			return fmt.Errorf("something went wrong")
 		}
+
+		noCopy, _ := cmd.Flags().GetBool("no-copy")
+		var snippet *domain.Snippet
 
 		id, err := strconv.ParseInt(args[0], 10, 64)
 		if err != nil {
