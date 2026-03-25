@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
 )
 
@@ -30,6 +31,8 @@ func (s *SnippetService) Create(ctx context.Context, snippet domain.Snippet) err
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("Snippet created with ID: %d\n", snippet.ID)
 
 	return nil
 }

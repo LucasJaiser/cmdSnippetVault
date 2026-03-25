@@ -31,7 +31,17 @@ func Init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file path which will be used")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "disable color output")
 
+	AddCommand.Flags().StringP("command", "c", "", "command to save")
+	AddCommand.Flags().StringP("description", "d", "", "description of the command")
+	AddCommand.Flags().StringSliceP("tags", "t", nil, "tags of the snippet, comma separated")
 	rootCmd.AddCommand(AddCommand)
+
+	rootCmd.AddCommand(EditCommand)
+	rootCmd.AddCommand(GetCommand)
+	rootCmd.AddCommand(ExecCommand)
+	rootCmd.AddCommand(ListCommand)
+	rootCmd.AddCommand(SearchCommand)
+	rootCmd.AddCommand(DeleteCommand)
 
 }
 

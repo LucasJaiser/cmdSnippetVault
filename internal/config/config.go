@@ -132,9 +132,8 @@ func InitConfig(flags *pflag.FlagSet, configPath string) (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("config: resolve config directory: %w", err)
 		}
-		viper.AddConfigPath(filepath.Join(configHome, AppName))
-
-		fmt.Println(configHome)
+		configDir := filepath.Join(configHome, AppName)
+		viper.AddConfigPath(configDir)
 	}
 
 	viper.AutomaticEnv()
@@ -144,8 +143,24 @@ func InitConfig(flags *pflag.FlagSet, configPath string) (*Config, error) {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
+		var notFound viper.ConfigFileNotFoundError
+		if !errors.As(err, &notFound) {
 			return nil, fmt.Errorf("config: read config file: %w", err)
+		}
+
+		// Config file not found — create it with defaults.
+		if configPath == "" {
+			configHome, homeErr := XDGConfigHome()
+			if homeErr != nil {
+				return nil, fmt.Errorf("config: resolve config directory: %w", homeErr)
+			}
+			configDir := filepath.Join(configHome, AppName)
+			if mkErr := os.MkdirAll(configDir, 0o755); mkErr != nil {
+				return nil, fmt.Errorf("config: create config directory: %w", mkErr)
+			}
+			if writeErr := viper.SafeWriteConfigAs(filepath.Join(configDir, "config.yaml")); writeErr != nil {
+				return nil, fmt.Errorf("config: write default config: %w", writeErr)
+			}
 		}
 	}
 
