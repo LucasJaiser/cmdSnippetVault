@@ -35,8 +35,9 @@ func Init() {
 	AddCommand.Flags().StringP("description", "d", "", "description of the command")
 	AddCommand.Flags().StringSliceP("tags", "t", nil, "tags of the snippet, comma separated")
 	rootCmd.AddCommand(AddCommand)
-
 	rootCmd.AddCommand(EditCommand)
+
+	GetCommand.Flags().BoolP("no-copy", "n", false, "Dont copy command to Clipboard")
 	rootCmd.AddCommand(GetCommand)
 	rootCmd.AddCommand(ExecCommand)
 	rootCmd.AddCommand(ListCommand)
