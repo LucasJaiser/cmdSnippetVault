@@ -40,6 +40,15 @@ func Init() {
 	GetCommand.Flags().BoolP("no-copy", "n", false, "Dont copy command to Clipboard")
 	rootCmd.AddCommand(GetCommand)
 	rootCmd.AddCommand(ExecCommand)
+
+	ListCommand.Flags().IntP("limit", "l", 20, "limits the max showed snippets")
+	ListCommand.Flags().IntP("offset", "o", 0, "offsets start of limit count in the list")
+	ListCommand.Flags().StringP("tag", "t", "", "filter for tag")
+	ListCommand.Flags().BoolP("json", "j", false, "outputs snippets as JSON")
+	ListCommand.Flags().BoolP("pretty", "p", false, "outputs JSON in a pretty format")
+
+	ListCommand.AddCommand(ListTagsCommand)
+
 	rootCmd.AddCommand(ListCommand)
 
 	SearchCommand.Flags().BoolP("json", "j", false, "Output list of snippets as JSON")
