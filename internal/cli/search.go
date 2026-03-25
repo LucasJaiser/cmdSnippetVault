@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
@@ -34,7 +33,7 @@ var SearchCommand = &cobra.Command{
 		json, _ := cmd.Flags().GetBool("json")
 		pretty, _ := cmd.Flags().GetBool("pretty")
 
-		snippets, err := snippetService.Search(context.Background(), args[0])
+		snippets, err := snippetService.Search(cmd.Context(), args[0])
 
 		if err != nil {
 			return err

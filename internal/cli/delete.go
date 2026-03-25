@@ -47,7 +47,7 @@ var DeleteCommand = &cobra.Command{
 				return fmt.Errorf("cancelled")
 			}
 			if !confirm {
-				fmt.Println("Aborted")
+				fmt.Println("Aborted.")
 				return nil
 			}
 		}

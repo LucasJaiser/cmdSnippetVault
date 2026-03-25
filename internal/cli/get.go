@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
@@ -39,9 +38,9 @@ var GetCommand = &cobra.Command{
 		}
 
 		if noCopy {
-			err = snippetService.GetAndCopy(context.Background(), id)
+			err = snippetService.GetAndCopy(cmd.Context(), id)
 		} else {
-			snippet, err = snippetService.Get(context.Background(), id)
+			snippet, err = snippetService.Get(cmd.Context(), id)
 		}
 
 		if err != nil {

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"lucasjaiser/goSnipperVault/internal/domain"
 
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ var ListCommand = &cobra.Command{
 		json, _ := cmd.Flags().GetBool("json")
 		pretty, _ := cmd.Flags().GetBool("pretty")
 
-		snippets, err := snippetService.List(context.Background(), domain.ListFilter{
+		snippets, err := snippetService.List(cmd.Context(), domain.ListFilter{
 			Tag:    tag,
 			Limit:  limit,
 			Offset: offset,

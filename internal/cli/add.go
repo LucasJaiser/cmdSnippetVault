@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
 	"slices"
@@ -37,7 +36,7 @@ var AddCommand = &cobra.Command{
 			}
 		}
 
-		err := snippetService.Create(context.Background(), domain.Snippet{
+		err := snippetService.Create(cmd.Context(), domain.Snippet{
 			Command:     command,
 			Description: description,
 			Tags:        tags,
