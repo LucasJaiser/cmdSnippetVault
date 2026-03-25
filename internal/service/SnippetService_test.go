@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"lucasjaiser/goSnipperVault/internal/config"
 	"lucasjaiser/goSnipperVault/internal/domain"
 	"testing"
 	"time"
@@ -69,7 +68,7 @@ func newTestService(repo domain.SnippetRepository) *SnippetService {
 	return NewSnippetService(repo, &mockClipboard{
 		copyFn:        func(_ string) error { return nil },
 		isAvailableFn: func() bool { return true },
-	}, &config.Config{})
+	})
 }
 
 func TestSnippetService_Create(t *testing.T) {

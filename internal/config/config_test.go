@@ -130,7 +130,7 @@ func TestDefaultDatabasePath(t *testing.T) {
 func TestInitConfig_Defaults(t *testing.T) {
 	resetViper(t)
 
-	cfg, err := InitConfig(nil)
+	cfg, err := InitConfig(nil, "")
 	require.NoError(t, err)
 
 	assert.True(t, cfg.Clipboard)
@@ -141,28 +141,38 @@ func TestInitConfig_Defaults(t *testing.T) {
 	assert.Contains(t, cfg.DatabasePath, "cmdvault.db")
 }
 
-func TestInitConfig_ConfigFile(t *testing.T) {
+func TestInitConfig_ExplicitConfigFile(t *testing.T) {
 	resetViper(t)
 
-	configDir := t.TempDir()
-	configPath := filepath.Join(configDir, "config.yaml")
-	err := os.WriteFile(configPath, []byte("color: never\ndefault_format: json\n"), 0o644)
+	configFile := filepath.Join(t.TempDir(), "custom.yaml")
+	err := os.WriteFile(configFile, []byte("color: never\ndefault_format: json\n"), 0o644)
 	require.NoError(t, err)
 
-	t.Setenv("XDG_CONFIG_HOME", filepath.Dir(configDir))
-
-	// Rename the temp dir to match AppName so Viper finds it
-	appConfigDir := filepath.Join(filepath.Dir(configDir), AppName)
-	err = os.Rename(configDir, appConfigDir)
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(appConfigDir) })
-
-	cfg, err := InitConfig(nil)
+	cfg, err := InitConfig(nil, configFile)
 	require.NoError(t, err)
 
 	assert.Equal(t, "never", cfg.Color)
 	assert.Equal(t, "json", cfg.DefaultFormat)
 	// Defaults still apply for unset values
+	assert.True(t, cfg.Clipboard)
+}
+
+func TestInitConfig_ConfigFileXDGDiscovery(t *testing.T) {
+	resetViper(t)
+
+	configDir := filepath.Join(t.TempDir(), AppName)
+	err := os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+	err = os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("color: never\ndefault_format: json\n"), 0o644)
+	require.NoError(t, err)
+
+	t.Setenv("XDG_CONFIG_HOME", filepath.Dir(configDir))
+
+	cfg, err := InitConfig(nil, "")
+	require.NoError(t, err)
+
+	assert.Equal(t, "never", cfg.Color)
+	assert.Equal(t, "json", cfg.DefaultFormat)
 	assert.True(t, cfg.Clipboard)
 }
 
@@ -178,7 +188,7 @@ func TestInitConfig_EnvOverridesFile(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", filepath.Dir(configDir))
 	t.Setenv("CMDVAULT_COLOR", "always")
 
-	cfg, err := InitConfig(nil)
+	cfg, err := InitConfig(nil, "")
 	require.NoError(t, err)
 
 	assert.Equal(t, "always", cfg.Color)
@@ -197,7 +207,7 @@ func TestInitConfig_FlagsOverrideAll(t *testing.T) {
 	t.Setenv("CMDVAULT_COLOR", "always")
 
 	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	cfg, err := InitConfig(flags)
+	cfg, err := InitConfig(flags, "")
 	require.NoError(t, err)
 
 	// Flag not explicitly set, so env wins
@@ -216,7 +226,7 @@ func TestInitConfig_FlagsOverrideAll(t *testing.T) {
 	err = flags.Parse([]string{"--color", "auto"})
 	require.NoError(t, err)
 
-	cfg, err = InitConfig(flags)
+	cfg, err = InitConfig(flags, "")
 	require.NoError(t, err)
 
 	assert.Equal(t, "auto", cfg.Color)

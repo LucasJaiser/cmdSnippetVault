@@ -2,22 +2,19 @@ package service
 
 import (
 	"context"
-	"lucasjaiser/goSnipperVault/internal/config"
 	"lucasjaiser/goSnipperVault/internal/domain"
 )
 
 type SnippetService struct {
 	repo      domain.SnippetRepository
 	clipboard domain.Clipboard
-	cfg       *config.Config
 }
 
-func NewSnippetService(repo domain.SnippetRepository, clipboard domain.Clipboard, cfg *config.Config) *SnippetService {
+func NewSnippetService(repo domain.SnippetRepository, clipboard domain.Clipboard) *SnippetService {
 
 	return &SnippetService{
 		repo:      repo,
 		clipboard: clipboard,
-		cfg:       cfg,
 	}
 }
 

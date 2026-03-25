@@ -105,7 +105,7 @@ func BindFlags(flags *pflag.FlagSet) error {
 // InitConfig loads configuration from file, environment, and defaults.
 // Call BindFlags before this if you want CLI flags to participate in the
 // precedence chain (flags > env > config file > defaults).
-func InitConfig(flags *pflag.FlagSet) (*Config, error) {
+func InitConfig(flags *pflag.FlagSet, configPath string) (*Config, error) {
 	var cfg Config
 
 	dbPath, err := DefaultDatabasePath()
@@ -120,15 +120,22 @@ func InitConfig(flags *pflag.FlagSet) (*Config, error) {
 	viper.SetDefault("confirm_execute", true)
 	viper.SetDefault("default_format", "yaml")
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
 	viper.SetEnvPrefix("CMDVAULT")
 
-	configHome, err := XDGConfigHome()
-	if err != nil {
-		return nil, fmt.Errorf("config: resolve config directory: %w", err)
+	if configPath != "" {
+		viper.SetConfigFile(configPath)
+	} else {
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+
+		configHome, err := XDGConfigHome()
+		if err != nil {
+			return nil, fmt.Errorf("config: resolve config directory: %w", err)
+		}
+		viper.AddConfigPath(filepath.Join(configHome, AppName))
+
+		fmt.Println(configHome)
 	}
-	viper.AddConfigPath(filepath.Join(configHome, AppName))
 
 	viper.AutomaticEnv()
 
