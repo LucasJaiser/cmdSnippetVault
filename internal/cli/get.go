@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
 	"strconv"
@@ -26,7 +27,7 @@ var GetCommand = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return fmt.Errorf("something went wrong")
+			return fmt.Errorf("missing id argument")
 		}
 
 		noCopy, _ := cmd.Flags().GetBool("no-copy")
@@ -44,6 +45,11 @@ var GetCommand = &cobra.Command{
 		}
 
 		if err != nil {
+			if errors.Is(err, domain.ErrNotFound) {
+				fmt.Printf("no Snippets found with id %d", id)
+				return nil
+			}
+
 			return err
 		}
 

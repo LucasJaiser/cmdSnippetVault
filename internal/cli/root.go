@@ -46,6 +46,8 @@ func Init() {
 	SearchCommand.Flags().BoolP("pretty", "p", false, "Outputs json in a pretty format")
 	SearchCommand.Flags().IntP("limit", "l", 20, "Max number of shown Snippets")
 	rootCmd.AddCommand(SearchCommand)
+
+	DeleteCommand.Flags().BoolP("force", "f", false, "Delete without confirming")
 	rootCmd.AddCommand(DeleteCommand)
 
 }

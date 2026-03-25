@@ -13,7 +13,7 @@ import (
 )
 
 var SearchCommand = &cobra.Command{
-	Use:   "search",
+	Use:   "search <query>",
 	Short: "search for snippets in your database",
 	Long:  "",
 	Args:  cobra.ExactArgs(1),
@@ -27,7 +27,7 @@ var SearchCommand = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return fmt.Errorf("something went wrong")
+			return fmt.Errorf("missing query argument")
 		}
 
 		limit, _ := cmd.Flags().GetInt("limit")
