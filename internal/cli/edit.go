@@ -63,7 +63,10 @@ var EditCommand = &cobra.Command{
 			return fmt.Errorf("could not convert snippet to json")
 		}
 
-		file.Write(snippetJson)
+		_, err = file.Write(snippetJson)
+		if err != nil {
+			return fmt.Errorf("could not write tmp file: %w", err)
+		}
 
 		filename := file.Name()
 
@@ -86,6 +89,9 @@ var EditCommand = &cobra.Command{
 		}
 		//get tmp file and diff with original
 		readSnippetJson, err := os.ReadFile(filename)
+		if err != nil {
+			return fmt.Errorf("could not rread tmp file: %w", err)
+		}
 
 		if string(readSnippetJson) == string(snippetJson) {
 			fmt.Println("No Change")
@@ -120,7 +126,7 @@ var EditCommand = &cobra.Command{
 		var readJsonSnippet DummySnippet
 		err = json.Unmarshal(readSnippetJson, &readJsonSnippet)
 		if err != nil {
-			return fmt.Errorf("Malformed file: %w", err)
+			return fmt.Errorf("malformed file: %w", err)
 		}
 
 		snippet.Command = readJsonSnippet.Command
