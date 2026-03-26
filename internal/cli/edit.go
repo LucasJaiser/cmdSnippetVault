@@ -52,7 +52,7 @@ var EditCommand = &cobra.Command{
 			return fmt.Errorf("could not create tmp file: %w", err)
 		}
 
-		//Creating Dummy json so the user doesent see id, use count, created_at, updated_at
+		//Creating Dummy json so the user doesent see id, use_count, created_at, updated_at
 		snippetJson, err := json.MarshalIndent(DummySnippet{
 			Command:     snippet.Command,
 			Description: snippet.Description,

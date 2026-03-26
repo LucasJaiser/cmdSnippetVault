@@ -44,6 +44,7 @@ func Init() {
 
 	GetCommand.Flags().BoolP("no-copy", "n", false, "Dont copy command to Clipboard")
 	rootCmd.AddCommand(GetCommand)
+
 	rootCmd.AddCommand(ExecCommand)
 
 	ListCommand.Flags().IntP("limit", "l", 20, "limits the max showed snippets")
