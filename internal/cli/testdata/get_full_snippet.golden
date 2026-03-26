@@ -1,0 +1,11 @@
+
+Command
+  docker ps -a
+
+Description
+  Show all containers
+
+Tags  docker   devops 
+
+ID 1    Uses 5
+

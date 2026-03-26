@@ -1,0 +1,13 @@
+[
+    {
+        "ID": 1,
+        "Command": "ls -la",
+        "Description": "list files",
+        "Tags": [
+            "shell"
+        ],
+        "UseCount": 2,
+        "CreatedAt": "2026-01-01T00:00:00Z",
+        "UpdatedAt": "2026-01-01T00:00:00Z"
+    }
+]

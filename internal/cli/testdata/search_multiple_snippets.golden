@@ -1,0 +1,15 @@
+
+Found 2 snippet(s)
+
+#1     docker ps -a
+
+       Show all containers
+        docker 
+       used 5 time(s)
+  ──────────────────────────────────────────────────
+#2     docker logs -f
+
+       Follow container logs
+        docker   logs 
+       used 3 time(s)
+
