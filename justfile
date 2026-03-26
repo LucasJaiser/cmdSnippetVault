@@ -1,10 +1,14 @@
 MIGRATE := 'migrate -path internal/storage/sqlite/migrations -database "sqlite://cmdvault.db"'
+VERSION := `git describe --tags --always --dirty 2>/dev/null || echo "dev"`
+COMMIT  := `git rev-parse --short HEAD 2>/dev/null || echo "none"`
+DATE    := `date -u +%Y-%m-%dT%H:%M:%SZ`
+LDFLAGS := "-X main.version=" + VERSION + " -X main.commit=" + COMMIT + " -X main.date=" + DATE
 
 lint:
 	golangci-lint run ./...
 
 build:
-	go build -o ./bin/csv ./cmd/cmdSnipperVault
+	go build -ldflags "{{LDFLAGS}}" -o ./bin/csv ./cmd/cmdSnipperVault
 
 test:
 	go test -race -coverprofile=coverage.out ./...
@@ -13,7 +17,7 @@ coverage:
 	go tool cover -html=coverage.out
 
 install:
-	go install .cmd/cmdSnipperVault
+	go install -ldflags "{{LDFLAGS}}" ./cmd/cmdSnipperVault
 
 clean:
 	rm -rf ./bin coverage.out

@@ -21,9 +21,13 @@ var (
 		Use:     "cmdSnipperVault",
 		Short:   "A CLI snippet manager for developers",
 		Long:    "",
-		Version: "1.0",
+		Version: "dev",
 	}
 )
+
+func SetVersion(version, commit, date string) {
+	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)
+}
 
 func Init() {
 	cobra.OnInitialize(InitEssential)
