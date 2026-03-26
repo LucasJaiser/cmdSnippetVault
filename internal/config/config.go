@@ -114,7 +114,7 @@ func InitConfig(flags *pflag.FlagSet, configPath string) (*Config, error) {
 	}
 
 	viper.SetDefault("clipboard", true)
-	viper.SetDefault("editor", "$EDITOR")
+	viper.SetDefault("editor", "nano")
 	viper.SetDefault("database_path", dbPath)
 	viper.SetDefault("color", "auto")
 	viper.SetDefault("confirm_execute", true)
