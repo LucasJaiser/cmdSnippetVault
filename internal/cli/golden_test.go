@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var testTime = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -164,7 +165,8 @@ func TestSearchCommand_PrintSnippets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := captureOutput(t, func() {
-				SearchCommand_PrintSnippets(tt.snippets, tt.limit, tt.json, tt.pretty)
+				err := SearchCommand_PrintSnippets(tt.snippets, tt.limit, tt.json, tt.pretty)
+				require.NoError(t, err)
 			})
 
 			expected := goldenFile(t, "search_"+tt.name, actual)

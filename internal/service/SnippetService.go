@@ -96,10 +96,17 @@ func (s *SnippetService) GetAndCopy(ctx context.Context, id int64) error {
 		return err
 	}
 
-	//copy To clipboard
-	fmt.Println("clipboard unavailable")
+	if s.clipboard != nil && s.clipboard.IsAvailable() {
 
-	return err
+		if err := s.clipboard.Copy(snippet.Command); err != nil {
+			return fmt.Errorf("could not copy to clipboard: %w", err)
+		}
+		fmt.Println("Copied to Clipboard")
+	} else {
+		fmt.Println("Clippboard unavailable")
+	}
+
+	return nil
 }
 func (s *SnippetService) ListTags(ctx context.Context) ([]*domain.TagWithCount, error) {
 	tags, err := s.repo.ListTags(ctx)

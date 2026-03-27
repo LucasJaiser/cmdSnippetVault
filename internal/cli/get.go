@@ -37,7 +37,7 @@ var GetCommand = &cobra.Command{
 			return fmt.Errorf("id is not a number: %w", err)
 		}
 
-		if noCopy {
+		if !noCopy {
 			err = snippetService.GetAndCopy(cmd.Context(), id)
 		} else {
 			snippet, err = snippetService.Get(cmd.Context(), id)

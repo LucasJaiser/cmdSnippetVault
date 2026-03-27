@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	templatevar "lucasjaiser/goSnipperVault/internal"
+	templatevar "lucasjaiser/goSnipperVault/internal/pkg"
 	"os"
 	"os/exec"
 	"strconv"

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"lucasjaiser/goSnipperVault/internal/clipboard"
 	"lucasjaiser/goSnipperVault/internal/service"
 	"lucasjaiser/goSnipperVault/internal/storage/sqlite"
 )
@@ -21,7 +22,11 @@ func getService() error {
 
 	Cleanup = func() { repo.Close() }
 
-	snippetService = service.NewSnippetService(repo, nil)
+	if appCfg.Clipboard {
+		snippetService = service.NewSnippetService(repo, clipboard.NewSystemClipboard())
+	} else {
+		snippetService = service.NewSnippetService(repo, clipboard.NewNoopClipboard())
+	}
 
 	return nil
 }
