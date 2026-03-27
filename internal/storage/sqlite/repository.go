@@ -59,29 +59,9 @@ func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) 
 	}
 	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
-	snippetResult, err := tx.ExecContext(ctx, "INSERT INTO snippets (`command`, `description`) VALUES (?, ?)", snippet.Command, snippet.Description)
-
+	err = r.createWithTX(ctx, snippet, tx)
 	if err != nil {
-		return fmt.Errorf("could not insert command: %w", err)
-	}
-
-	snippetID, err := snippetResult.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("could not get last inserted id from command: %w", err)
-	}
-
-	for _, name := range snippet.Tags {
-
-		tag, err := r.createOrGetTag(ctx, name, tx)
-		if err != nil {
-			return fmt.Errorf("could not create or get tag: %w", err)
-		}
-
-		err = r.linkTag(ctx, int(tag.ID), int(snippetID), tx)
-		if err != nil {
-			return fmt.Errorf("could not link tag to snippet: %w", err)
-		}
-
+		return err
 	}
 
 	err = tx.Commit()
@@ -89,7 +69,6 @@ func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) 
 		return fmt.Errorf("could not commit statements %w", err)
 	}
 
-	snippet.ID = snippetID
 	return nil
 }
 
@@ -382,4 +361,98 @@ func (r *SQLiteRepository) unlinkTag(ctx context.Context, tag_id int, snippet_id
 	}
 
 	return nil
+}
+
+func (r *SQLiteRepository) CreateBatch(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+	var duplicates int
+	var created int
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not create transaction: %w", err)
+	}
+
+	defer tx.Rollback() //nolint:errcheck // no-op after commit
+
+	for _, snippet := range snippets {
+
+		duplicate, err := r.searchForDuplicate(ctx, snippet.Command, tx)
+		if err != nil {
+			return nil, err
+		}
+
+		if duplicate {
+			duplicates += 1
+			continue
+		}
+
+		// Create Snippet
+		err = r.createWithTX(ctx, snippet, tx)
+		if err != nil {
+			return nil, err
+		}
+
+		created += 1
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("could not commit batch create: %w", err)
+	}
+
+	return &domain.ImportStatistics{
+		Created:    created,
+		Duplicates: duplicates,
+	}, nil
+
+}
+
+func (r *SQLiteRepository) searchForDuplicate(ctx context.Context, command string, tx *sql.Tx) (bool, error) {
+
+	result := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM snippets WHERE command = ?", command)
+
+	var entries int
+	err := result.Scan(&entries)
+	if err != nil {
+		return false, fmt.Errorf("could not scan entries: %w", err)
+	}
+
+	if entries > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (r *SQLiteRepository) createWithTX(ctx context.Context, snippet *domain.Snippet, tx *sql.Tx) error {
+
+	snippetResult, err := tx.ExecContext(ctx, "INSERT INTO snippets (`command`, `description`) VALUES (?, ?)", snippet.Command, snippet.Description)
+
+	if err != nil {
+		return fmt.Errorf("could not insert command: %w", err)
+	}
+
+	snippetID, err := snippetResult.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("could not get last inserted id from command: %w", err)
+	}
+
+	for _, name := range snippet.Tags {
+
+		tag, err := r.createOrGetTag(ctx, name, tx)
+		if err != nil {
+			return fmt.Errorf("could not create or get tag: %w", err)
+		}
+
+		err = r.linkTag(ctx, int(tag.ID), int(snippetID), tx)
+		if err != nil {
+			return fmt.Errorf("could not link tag to snippet: %w", err)
+		}
+
+	}
+
+	snippet.ID = snippetID
+
+	return nil
+
 }

@@ -130,11 +130,14 @@ func TestDefaultDatabasePath(t *testing.T) {
 func TestInitConfig_Defaults(t *testing.T) {
 	resetViper(t)
 
+	// Point XDG to empty temp dir so no real config file is discovered
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
 	cfg, err := InitConfig(nil, "")
 	require.NoError(t, err)
 
 	assert.True(t, cfg.Clipboard)
-	assert.Equal(t, "$EDITOR", cfg.Editor)
+	assert.Equal(t, "nano", cfg.Editor)
 	assert.Equal(t, "auto", cfg.Color)
 	assert.True(t, cfg.ConfirmExecute)
 	assert.Equal(t, "yaml", cfg.DefaultFormat)

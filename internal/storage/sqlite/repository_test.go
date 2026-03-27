@@ -782,6 +782,158 @@ func TestUnlinkTag(t *testing.T) {
 	}
 }
 
+func TestCreateBatch(t *testing.T) {
+	tests := []struct {
+		name     string
+		setup    func(t *testing.T, repo *SQLiteRepository)
+		snippets []*domain.Snippet
+		check    func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics)
+	}{
+		{
+			name:  "creates all snippets when no duplicates",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			snippets: []*domain.Snippet{
+				{Command: "ls -la", Description: "list files", Tags: []string{"filesystem"}},
+				{Command: "git status", Description: "check status", Tags: []string{"git"}},
+				{Command: "docker ps", Description: "list containers", Tags: []string{"docker"}},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 3, stats.Created)
+				assert.Equal(t, 0, stats.Duplicates)
+
+				all, err := repo.List(context.Background(), domain.ListFilter{})
+				require.NoError(t, err)
+				assert.Len(t, all, 3)
+			},
+		},
+		{
+			name: "skips duplicates based on command",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "ls -la", "existing", []string{"old"})
+			},
+			snippets: []*domain.Snippet{
+				{Command: "ls -la", Description: "list files", Tags: []string{"new"}},
+				{Command: "git status", Description: "check status", Tags: []string{"git"}},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 1, stats.Created)
+				assert.Equal(t, 1, stats.Duplicates)
+			},
+		},
+		{
+			name:     "handles empty batch",
+			setup:    func(t *testing.T, repo *SQLiteRepository) {},
+			snippets: []*domain.Snippet{},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 0, stats.Created)
+				assert.Equal(t, 0, stats.Duplicates)
+			},
+		},
+		{
+			name:  "detects duplicates within the batch itself",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "first"},
+				{Command: "echo hello", Description: "duplicate"},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 1, stats.Created)
+				assert.Equal(t, 1, stats.Duplicates)
+			},
+		},
+		{
+			name:  "assigns IDs to created snippets",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			snippets: []*domain.Snippet{
+				{Command: "cmd1", Description: "desc1"},
+				{Command: "cmd2", Description: "desc2"},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 2, stats.Created)
+
+				all, err := repo.List(context.Background(), domain.ListFilter{})
+				require.NoError(t, err)
+				for _, s := range all {
+					assert.NotZero(t, s.ID)
+				}
+			},
+		},
+		{
+			name:  "creates tags for batch snippets",
+			setup: func(t *testing.T, repo *SQLiteRepository) {},
+			snippets: []*domain.Snippet{
+				{Command: "cmd1", Description: "desc1", Tags: []string{"tag1", "shared"}},
+				{Command: "cmd2", Description: "desc2", Tags: []string{"tag2", "shared"}},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 2, stats.Created)
+
+				tags, err := repo.ListTags(context.Background())
+				require.NoError(t, err)
+				assert.Len(t, tags, 3) // tag1, tag2, shared
+
+				for _, tag := range tags {
+					if tag.Name == "shared" {
+						assert.Equal(t, 2, tag.Count)
+					}
+				}
+			},
+		},
+		{
+			name: "all duplicates returns zero created",
+			setup: func(t *testing.T, repo *SQLiteRepository) {
+				createTestSnippet(t, repo, "cmd1", "existing1", nil)
+				createTestSnippet(t, repo, "cmd2", "existing2", nil)
+			},
+			snippets: []*domain.Snippet{
+				{Command: "cmd1", Description: "dup1"},
+				{Command: "cmd2", Description: "dup2"},
+			},
+			check: func(t *testing.T, repo *SQLiteRepository, stats *domain.ImportStatistics) {
+				assert.Equal(t, 0, stats.Created)
+				assert.Equal(t, 2, stats.Duplicates)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := setupTestDB(t)
+			tt.setup(t, repo)
+
+			stats, err := repo.CreateBatch(context.Background(), tt.snippets)
+			require.NoError(t, err)
+			tt.check(t, repo, stats)
+		})
+	}
+}
+
+func TestCreateBatch_CancelledContext(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	snippets := []*domain.Snippet{
+		{Command: "cmd", Description: "desc"},
+	}
+	_, err := repo.CreateBatch(ctx, snippets)
+	assert.Error(t, err)
+}
+
+func TestCreateBatch_ClosedDB(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "closed_test.db")
+	repo, err := New(dbPath)
+	require.NoError(t, err)
+	repo.Close()
+
+	snippets := []*domain.Snippet{
+		{Command: "cmd", Description: "desc"},
+	}
+	_, err = repo.CreateBatch(context.Background(), snippets)
+	assert.Error(t, err)
+}
+
 func TestMigrate_Idempotent(t *testing.T) {
 	repo := setupTestDB(t)
 	// Running migrate again should not error (ErrNoChange is swallowed)

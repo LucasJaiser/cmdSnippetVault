@@ -13,13 +13,14 @@ import (
 
 // mockRepository is a hand-written mock implementing domain.SnippetRepository.
 type mockRepository struct {
-	createFn   func(ctx context.Context, snippet *domain.Snippet) error
-	getByIDFn  func(ctx context.Context, id int64) (*domain.Snippet, error)
-	listFn     func(ctx context.Context, filter domain.ListFilter) ([]*domain.Snippet, error)
-	updateFn   func(ctx context.Context, snippet *domain.Snippet) error
-	deleteFn   func(ctx context.Context, id int64) error
-	searchFn   func(ctx context.Context, query string) ([]*domain.Snippet, error)
-	listTagsFn func(ctx context.Context) ([]*domain.TagWithCount, error)
+	createFn    func(ctx context.Context, snippet *domain.Snippet) error
+	getByIDFn   func(ctx context.Context, id int64) (*domain.Snippet, error)
+	listFn      func(ctx context.Context, filter domain.ListFilter) ([]*domain.Snippet, error)
+	updateFn    func(ctx context.Context, snippet *domain.Snippet) error
+	deleteFn    func(ctx context.Context, id int64) error
+	searchFn    func(ctx context.Context, query string) ([]*domain.Snippet, error)
+	listTagsFn  func(ctx context.Context) ([]*domain.TagWithCount, error)
+	createBatch func(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error)
 }
 
 func (m *mockRepository) Create(ctx context.Context, snippet *domain.Snippet) error {
@@ -48,6 +49,10 @@ func (m *mockRepository) Search(ctx context.Context, query string) ([]*domain.Sn
 
 func (m *mockRepository) ListTags(ctx context.Context) ([]*domain.TagWithCount, error) {
 	return m.listTagsFn(ctx)
+}
+
+func (m *mockRepository) CreateBatch(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+	return m.createBatch(ctx, snippets)
 }
 
 // mockClipboard is a hand-written mock implementing domain.Clipboard.
@@ -589,6 +594,119 @@ func TestSnippetService_ListTags(t *testing.T) {
 				require.NoError(t, err)
 				assert.Len(t, tags, tt.wantLen)
 			}
+		})
+	}
+}
+
+func TestSnippetService_CreateBatch(t *testing.T) {
+	tests := []struct {
+		name           string
+		snippets       []*domain.Snippet
+		createBatchFn  func(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error)
+		wantCreated    int
+		wantDuplicates int
+		wantRejected   int
+		wantErr        bool
+	}{
+		{
+			name: "all valid no duplicates",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "prints hello", Tags: []string{"shell"}},
+				{Command: "git status", Description: "check status", Tags: []string{"git"}},
+			},
+			createBatchFn: func(_ context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+				assert.Len(t, snippets, 2)
+				return &domain.ImportStatistics{Created: 2, Duplicates: 0}, nil
+			},
+			wantCreated:    2,
+			wantDuplicates: 0,
+			wantRejected:   0,
+		},
+		{
+			name: "filters out invalid snippets",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "valid"},
+				{Command: "", Description: "empty command"},
+				{Command: "git status", Tags: []string{"Shell"}},
+			},
+			createBatchFn: func(_ context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+				assert.Len(t, snippets, 1)
+				return &domain.ImportStatistics{Created: 1, Duplicates: 0}, nil
+			},
+			wantCreated:    1,
+			wantDuplicates: 0,
+			wantRejected:   2,
+		},
+		{
+			name: "combines rejected and duplicates",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "valid"},
+				{Command: "", Description: "invalid"},
+				{Command: "existing cmd", Description: "will be duplicate"},
+			},
+			createBatchFn: func(_ context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+				assert.Len(t, snippets, 2)
+				return &domain.ImportStatistics{Created: 1, Duplicates: 1}, nil
+			},
+			wantCreated:    1,
+			wantDuplicates: 1,
+			wantRejected:   1,
+		},
+		{
+			name:     "empty batch",
+			snippets: []*domain.Snippet{},
+			createBatchFn: func(_ context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+				assert.Empty(t, snippets)
+				return &domain.ImportStatistics{Created: 0, Duplicates: 0}, nil
+			},
+			wantCreated:    0,
+			wantDuplicates: 0,
+			wantRejected:   0,
+		},
+		{
+			name: "all invalid snippets",
+			snippets: []*domain.Snippet{
+				{Command: "", Description: "no command"},
+				{Command: "", Description: "also empty"},
+			},
+			createBatchFn: func(_ context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+				assert.Empty(t, snippets)
+				return &domain.ImportStatistics{Created: 0, Duplicates: 0}, nil
+			},
+			wantCreated:    0,
+			wantDuplicates: 0,
+			wantRejected:   2,
+		},
+		{
+			name: "repository error",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "valid"},
+			},
+			createBatchFn: func(_ context.Context, _ []*domain.Snippet) (*domain.ImportStatistics, error) {
+				return nil, errors.New("db error")
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := newTestService(&mockRepository{
+				createBatch: tt.createBatchFn,
+			})
+
+			stats, err := svc.CreateBatch(context.Background(), tt.snippets)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, stats)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, stats)
+			assert.Equal(t, tt.wantCreated, stats.Created)
+			assert.Equal(t, tt.wantDuplicates, stats.Duplicates)
+			assert.Equal(t, tt.wantRejected, stats.Rejected)
 		})
 	}
 }

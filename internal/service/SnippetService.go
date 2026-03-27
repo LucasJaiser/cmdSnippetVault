@@ -108,8 +108,37 @@ func (s *SnippetService) GetAndCopy(ctx context.Context, id int64) error {
 
 	return nil
 }
+
 func (s *SnippetService) ListTags(ctx context.Context) ([]*domain.TagWithCount, error) {
 	tags, err := s.repo.ListTags(ctx)
 
 	return tags, err
+}
+
+func (s *SnippetService) CreateBatch(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+	var rejected int
+	var clearToImport []*domain.Snippet
+
+	//Validate
+	for _, snippet := range snippets {
+		err := snippet.Validate()
+
+		if err != nil {
+			rejected += 1
+			continue
+		}
+
+		clearToImport = append(clearToImport, snippet)
+	}
+
+	// Execute Batch on validated snippets
+	stats, err := s.repo.CreateBatch(ctx, clearToImport)
+	if err != nil {
+		return nil, err
+	}
+
+	stats.Rejected = rejected
+
+	return stats, nil
+
 }

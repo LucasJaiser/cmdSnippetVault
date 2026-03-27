@@ -12,4 +12,5 @@ type SnippetRepository interface {
 	Delete(ctx context.Context, id int64) error
 	Search(ctx context.Context, query string) ([]*Snippet, error)
 	ListTags(ctx context.Context) ([]*TagWithCount, error)
+	CreateBatch(ctx context.Context, snippets []*Snippet) (*ImportStatistics, error)
 }
