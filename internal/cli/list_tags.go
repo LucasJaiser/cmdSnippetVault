@@ -1,18 +1,18 @@
 package cli
 
 import (
-	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
-	"strconv"
-
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
+// ListTagsCommand displays all tags with their snippet counts.
 var ListTagsCommand = &cobra.Command{
 	Use:   "tags",
 	Short: "Lists available tags",
-	Long:  "",
+	Long: `List all tags in your snippet collection along with the number of snippets
+associated with each tag. Tags are displayed in alphabetical order.
+
+Examples:
+  cmdSnipperVault list tags`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {
@@ -28,7 +28,7 @@ var ListTagsCommand = &cobra.Command{
 			return err
 		}
 
-		ListTagsCommand_PrintTags(tags)
+		PrintTags(tags)
 
 		return nil
 	},
@@ -37,26 +37,4 @@ var ListTagsCommand = &cobra.Command{
 
 		return nil
 	},
-}
-
-func ListTagsCommand_PrintTags(tags []*domain.TagWithCount) {
-	if len(tags) == 0 {
-		fmt.Println("No tags found.")
-		return
-	}
-
-	name := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("6"))
-	count := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-
-	fmt.Printf("\n%s\n\n", lipgloss.NewStyle().Bold(true).Render(
-		fmt.Sprintf("%d tag(s)", len(tags)),
-	))
-
-	for _, t := range tags {
-		fmt.Printf("  %s  %s\n",
-			name.Render(t.Name),
-			count.Render(strconv.Itoa(t.Count)+" snippet(s)"),
-		)
-	}
-	fmt.Println()
 }

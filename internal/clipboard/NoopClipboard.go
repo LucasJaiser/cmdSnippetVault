@@ -4,9 +4,11 @@ import (
 	"fmt"
 )
 
+// NoopClipboard implements domain.Clipboard as a no-op for environments without clipboard support.
 type NoopClipboard struct {
 }
 
+// NewNoopClipboard creates a new NoopClipboard.
 func NewNoopClipboard() *NoopClipboard {
 	return &NoopClipboard{}
 }

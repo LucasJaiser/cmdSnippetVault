@@ -12,16 +12,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// DummySnippet is a simplified snippet struct used for editor serialization.
 type DummySnippet struct {
 	Command     string
 	Description string
 	Tags        []string
 }
 
+// EditCommand opens a snippet in an editor for modification.
 var EditCommand = &cobra.Command{
 	Use:   "edit <id>",
 	Short: "Edit Snippet",
-	Long:  "",
+	Long: `Edit an existing snippet by its ID. Opens the snippet in your configured
+editor as a JSON file. After saving and closing the editor, the changes
+are diffed and applied to the snippet.
+
+The editor is determined by the "editor" config option, falling back to nano.
+
+Examples:
+  cmdSnipperVault edit 42`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

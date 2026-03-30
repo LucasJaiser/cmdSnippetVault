@@ -6,10 +6,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ListCommand displays snippets with optional tag filter and pagination.
 var ListCommand = &cobra.Command{
 	Use:   "list",
 	Short: "List available snippets",
-	Long:  "",
+	Long: `List snippets from your collection, ordered by most recently updated.
+Results can be filtered by tag, paginated with limit and offset, and
+output as JSON for scripting.
+
+Examples:
+  cmdSnipperVault list
+  cmdSnipperVault list -t docker -l 10
+  cmdSnipperVault list --json --pretty`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {
@@ -36,7 +44,7 @@ var ListCommand = &cobra.Command{
 			return err
 		}
 
-		if err != SearchCommand_PrintSnippets(snippets, limit, json, pretty) {
+		if err != PrintSnippetList(snippets, limit, json, pretty) {
 			return err
 		}
 		return nil

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Snippet represents a saved shell command with metadata.
 type Snippet struct {
 	ID          int64
 	Command     string
@@ -17,12 +18,14 @@ type Snippet struct {
 	UpdatedAt   time.Time
 }
 
+// ListFilter holds filtering and pagination options for listing snippets.
 type ListFilter struct {
 	Tag    string
 	Limit  int
 	Offset int
 }
 
+// Validate checks that the snippet has a non-empty command and valid tags.
 func (s *Snippet) Validate() error {
 
 	if s.Command == "" {

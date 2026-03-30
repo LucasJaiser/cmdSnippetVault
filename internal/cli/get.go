@@ -5,17 +5,23 @@ import (
 	"fmt"
 	"lucasjaiser/goSnipperVault/internal/domain"
 	"strconv"
-	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
+// GetCommand retrieves a snippet by ID and optionally copies it to the clipboard.
 var GetCommand = &cobra.Command{
 	Use:   "get <id>",
 	Short: "Get a Snippet and or Copy it to the Clipboard",
-	Long:  "",
-	Args:  cobra.ExactArgs(1),
+	Long: `Retrieve a snippet by its ID, display its details, and copy the command
+to the clipboard. The snippet's use count is incremented on each retrieval.
+
+Use --no-copy to display the snippet without copying to the clipboard.
+
+Examples:
+  cmdSnipperVault get 42
+  cmdSnipperVault get 42 --no-copy`,
+	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {
@@ -53,7 +59,7 @@ var GetCommand = &cobra.Command{
 		}
 
 		if snippet != nil {
-			GetCommand_PrintSnippet(snippet)
+			PrintSnippetDetail(snippet)
 		}
 
 		return nil
@@ -63,35 +69,4 @@ var GetCommand = &cobra.Command{
 
 		return nil
 	},
-}
-
-func GetCommand_PrintSnippet(snippet *domain.Snippet) {
-	label := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("6"))
-	command := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("2")).PaddingLeft(2)
-	tag := lipgloss.NewStyle().Background(lipgloss.Color("8")).Foreground(lipgloss.Color("15")).Padding(0, 1)
-	dim := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-
-	fmt.Println()
-	fmt.Println(label.Render("Command"))
-	fmt.Println(command.Render(snippet.Command))
-	fmt.Println()
-
-	if snippet.Description != "" {
-		fmt.Println(label.Render("Description"))
-		fmt.Printf("  %s\n\n", snippet.Description)
-	}
-
-	if len(snippet.Tags) > 0 {
-		var tags []string
-		for _, t := range snippet.Tags {
-			tags = append(tags, tag.Render(t))
-		}
-		fmt.Printf("%s %s\n\n", label.Render("Tags"), strings.Join(tags, " "))
-	}
-
-	fmt.Printf("%s %s    %s %s\n",
-		label.Render("ID"), dim.Render(strconv.FormatInt(snippet.ID, 10)),
-		label.Render("Uses"), dim.Render(strconv.Itoa(snippet.UseCount)),
-	)
-	fmt.Println()
 }

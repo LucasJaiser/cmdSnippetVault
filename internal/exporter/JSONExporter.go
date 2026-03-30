@@ -7,9 +7,11 @@ import (
 	"os"
 )
 
+// JSONExporter implements domain.Exporter for JSON output.
 type JSONExporter struct {
 }
 
+// NewJSONExporter creates a new JSONExporter.
 func NewJSONExporter() *JSONExporter {
 	return &JSONExporter{}
 }

@@ -6,10 +6,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ImportCommand imports snippets from a JSON or YAML file.
 var ImportCommand = &cobra.Command{
 	Use:   "import <import_file>",
 	Short: "Import snippet from a file",
-	Long:  "",
+	Long: `Import snippets from a JSON or YAML file into your collection. Duplicate
+snippets (matching by command) are skipped, and invalid entries are rejected.
+
+The file format is detected from the extension, or can be overridden with
+the --format flag. Use --dry-run to preview the import without saving.
+
+Examples:
+  cmdSnipperVault import snippets.yaml
+  cmdSnipperVault import snippets.txt --format json
+  cmdSnipperVault import snippets.yaml --dry-run`,
 	Args:  cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

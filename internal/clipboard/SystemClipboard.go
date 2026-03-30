@@ -2,9 +2,11 @@ package clipboard
 
 import "github.com/atotto/clipboard"
 
+// SystemClipboard implements domain.Clipboard using the system clipboard.
 type SystemClipboard struct {
 }
 
+// NewSystemClipboard creates a new SystemClipboard.
 func NewSystemClipboard() *SystemClipboard {
 	return &SystemClipboard{}
 }

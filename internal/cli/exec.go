@@ -11,10 +11,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ExecCommand executes a snippet directly in the shell.
 var ExecCommand = &cobra.Command{
 	Use:   "exec <id>",
 	Short: "Execute a Snippet directly",
-	Long:  "",
+	Long: `Execute a snippet directly in your shell by its ID. If the snippet contains
+template variables (e.g. {{host}}), you will be prompted to fill them in
+before execution.
+
+You will be asked to confirm before the command runs unless confirm_execute
+is disabled in your config.
+
+Examples:
+  cmdSnipperVault exec 42`,
 	Args:  cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
@@ -77,7 +86,7 @@ var ExecCommand = &cobra.Command{
 		}
 
 		//Step 3: Ask for confirmation
-		GetCommand_PrintSnippet(snippet)
+		PrintSnippetDetail(snippet)
 
 		var confirm bool
 		err = huh.NewConfirm().

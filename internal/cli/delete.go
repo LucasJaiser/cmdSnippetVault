@@ -9,10 +9,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// DeleteCommand removes a snippet by ID, with optional force flag.
 var DeleteCommand = &cobra.Command{
 	Use:   "delete <id>",
 	Short: "Delete a Snippet",
-	Long:  "",
+	Long: `Delete a snippet from your collection by its ID. You will be prompted
+for confirmation unless the --force flag is provided.
+
+Examples:
+  cmdSnipperVault delete 42
+  cmdSnipperVault delete 42 --force`,
 	Args:  cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

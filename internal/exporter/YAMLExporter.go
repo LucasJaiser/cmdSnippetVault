@@ -8,9 +8,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// YAMLExporter implements domain.Exporter for YAML output.
 type YAMLExporter struct {
 }
 
+// NewYAMLExporter creates a new YAMLExporter.
 func NewYAMLExporter() *YAMLExporter {
 	return &YAMLExporter{}
 }

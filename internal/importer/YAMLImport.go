@@ -7,9 +7,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// YAMLImporter implements domain.Importer for YAML files.
 type YAMLImporter struct {
 }
 
+// NewYAMLImporter creates a new YAMLImporter.
 func NewYAMLImporter() *YAMLImporter {
 	return &YAMLImporter{}
 }

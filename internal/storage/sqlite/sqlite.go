@@ -9,6 +9,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// New creates a new SQLiteRepository, initializing the database and running migrations.
 func New(db_path string) (*SQLiteRepository, error) {
 	if db_path != ":memory:" {
 		if err := os.MkdirAll(filepath.Dir(db_path), 0o700); err != nil {

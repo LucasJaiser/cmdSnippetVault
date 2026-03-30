@@ -7,10 +7,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ExportCommand exports snippets to a JSON or YAML file.
 var ExportCommand = &cobra.Command{
 	Use:   "export",
 	Short: "Export your snippets",
-	Long:  "",
+	Long: `Export snippets from your collection to a JSON or YAML file. You can filter
+by tag to export only specific snippets, and specify the output file path.
+
+The format defaults to JSON and can be changed with the --format flag.
+
+Examples:
+  cmdSnipperVault export -o backup.json
+  cmdSnipperVault export -o docker.yaml -f yaml -t docker`,
 	Args:  cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

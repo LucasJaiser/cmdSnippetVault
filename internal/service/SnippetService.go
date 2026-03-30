@@ -6,11 +6,13 @@ import (
 	"lucasjaiser/goSnipperVault/internal/domain"
 )
 
+// SnippetService provides business logic for managing snippets.
 type SnippetService struct {
 	repo      domain.SnippetRepository
 	clipboard domain.Clipboard
 }
 
+// NewSnippetService creates a new SnippetService with the given repository and clipboard.
 func NewSnippetService(repo domain.SnippetRepository, clipboard domain.Clipboard) *SnippetService {
 
 	return &SnippetService{

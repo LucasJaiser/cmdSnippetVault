@@ -11,7 +11,7 @@ import (
 
 var testTime = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
-func TestGetCommand_PrintSnippet(t *testing.T) {
+func TestPrintSnippetDetail(t *testing.T) {
 	tests := []struct {
 		name    string
 		snippet *domain.Snippet
@@ -64,7 +64,7 @@ func TestGetCommand_PrintSnippet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := captureOutput(t, func() {
-				GetCommand_PrintSnippet(tt.snippet)
+				PrintSnippetDetail(tt.snippet)
 			})
 
 			expected := goldenFile(t, "get_"+tt.name, actual)
@@ -73,7 +73,7 @@ func TestGetCommand_PrintSnippet(t *testing.T) {
 	}
 }
 
-func TestSearchCommand_PrintSnippets(t *testing.T) {
+func TestPrintSnippetList(t *testing.T) {
 	tests := []struct {
 		name     string
 		snippets []*domain.Snippet
@@ -165,7 +165,7 @@ func TestSearchCommand_PrintSnippets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := captureOutput(t, func() {
-				err := SearchCommand_PrintSnippets(tt.snippets, tt.limit, tt.json, tt.pretty)
+				err := PrintSnippetList(tt.snippets, tt.limit, tt.json, tt.pretty)
 				require.NoError(t, err)
 			})
 
@@ -175,7 +175,7 @@ func TestSearchCommand_PrintSnippets(t *testing.T) {
 	}
 }
 
-func TestListTagsCommand_PrintTags(t *testing.T) {
+func TestPrintTags(t *testing.T) {
 	tests := []struct {
 		name string
 		tags []*domain.TagWithCount
@@ -203,7 +203,7 @@ func TestListTagsCommand_PrintTags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := captureOutput(t, func() {
-				ListTagsCommand_PrintTags(tt.tags)
+				PrintTags(tt.tags)
 			})
 
 			expected := goldenFile(t, "list_tags_"+tt.name, actual)

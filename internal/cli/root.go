@@ -19,16 +19,23 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:     "cmdSnipperVault",
-		Short:   "A CLI snippet manager for developers",
-		Long:    "",
+		Short: "A CLI snippet manager for developers",
+		Long: `cmdSnipperVault is a CLI snippet manager for saving, tagging, searching,
+and executing shell commands. Store frequently used commands with descriptions
+and tags, then quickly find and run them when needed.
+
+Snippets are stored in a local SQLite database and can be imported or exported
+as JSON or YAML for sharing and backup.`,
 		Version: "dev",
 	}
 )
 
+// SetVersion configures the version string displayed by the --version flag.
 func SetVersion(version, commit, date string) {
 	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)
 }
 
+// Init registers all commands and flags on the root command.
 func Init() {
 	cobra.OnInitialize(InitEssential)
 
@@ -78,10 +85,12 @@ func Init() {
 
 }
 
+// Execute runs the root command.
 func Execute() error {
 	return rootCmd.Execute()
 }
 
+// InitEssential loads the application configuration.
 func InitEssential() {
 	cfg, err := config.InitConfig(rootCmd.Flags(), cfgFile)
 	if err != nil {

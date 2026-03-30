@@ -6,6 +6,7 @@ import (
 	"text/template"
 )
 
+// Parse extracts template variable names from a command string and returns the parsed template.
 func Parse(command string) (*template.Template, []string, error) {
 
 	tmpl, err := template.New("cmd").Parse(command)
@@ -24,6 +25,7 @@ func Parse(command string) (*template.Template, []string, error) {
 	return tmpl, keys, nil
 }
 
+// Resolve executes the template with the provided values and returns the resulting string.
 func Resolve(tmpl *template.Template, values *map[string]string) (string, error) {
 
 	var buf bytes.Buffer

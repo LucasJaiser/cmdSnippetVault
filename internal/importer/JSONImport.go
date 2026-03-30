@@ -6,9 +6,11 @@ import (
 	"os"
 )
 
+// JSONImporter implements domain.Importer for JSON files.
 type JSONImporter struct {
 }
 
+// NewJSONImporter creates a new JSONImporter.
 func NewJSONImporter() *JSONImporter {
 	return &JSONImporter{}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// SnippetRepository defines the persistence operations for snippets.
 type SnippetRepository interface {
 	Create(ctx context.Context, snippet *Snippet) error
 	GetByID(ctx context.Context, id int64) (*Snippet, error)

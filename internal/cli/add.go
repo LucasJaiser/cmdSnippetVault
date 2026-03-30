@@ -10,10 +10,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// AddCommand creates a new snippet, either via flags or an interactive prompt.
 var AddCommand = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new Snippet",
-	Long:  "",
+	Long: `Add a new snippet to your collection. You can provide the command, description,
+and tags directly via flags, or omit them to enter an interactive prompt.
+
+Tags must be lowercase and comma-separated. Duplicate tags are not allowed.
+
+Examples:
+  cmdSnipperVault add -c "docker ps -a" -d "List all containers" -t docker,devops
+  cmdSnipperVault add`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {
@@ -55,6 +63,7 @@ var AddCommand = &cobra.Command{
 	},
 }
 
+// AddCommand_Interactive prompts the user for snippet details interactively.
 func AddCommand_Interactive(command *string, description *string, tags *[]string) error {
 	var tagsInput string
 
