@@ -10,29 +10,28 @@ import (
 )
 
 // New creates a new SQLiteRepository, initializing the database and running migrations.
-func New(db_path string) (*SQLiteRepository, error) {
-	if db_path != ":memory:" {
-		if err := os.MkdirAll(filepath.Dir(db_path), 0o700); err != nil {
+func New(dbPath string) (*SQLiteRepository, error) {
+	if dbPath != ":memory:" {
+		if err := os.MkdirAll(filepath.Dir(dbPath), 0o700); err != nil {
 			return nil, fmt.Errorf("sqlite: create data directory: %w", err)
 		}
 	}
 
-	//For Tests we use :memory: as db_path
-	dsn := fmt.Sprintf("%s?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)", db_path)
+	// For tests we use :memory: as dbPath.
+	dsn := fmt.Sprintf("%s?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)", dbPath)
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("could not Open SQLite File: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
-
 		return nil, fmt.Errorf("could not Ping Database: %w", err)
 	}
 
 	repo := &SQLiteRepository{
-		db:       db,
-		file_dsn: dsn,
-		dsn:      fmt.Sprintf("sqlite://%s?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)", db_path),
+		db:      db,
+		fileDSN: dsn,
+		dsn:     fmt.Sprintf("sqlite://%s?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)", dbPath),
 	}
 
 	if err := repo.Migrate(); err != nil {

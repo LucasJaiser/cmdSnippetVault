@@ -19,7 +19,7 @@ import (
 type SQLiteRepository struct {
 	db       *sql.DB
 	dsn      string
-	file_dsn string
+	fileDSN string
 }
 
 //go:embed migrations/*.sql
@@ -31,12 +31,12 @@ func (r *SQLiteRepository) Migrate() error {
 		return fmt.Errorf("could not read migrations: %w", err)
 	}
 
-	migrations_instance, err := migrate.NewWithSourceInstance("iofs", source, r.dsn)
+	migrationsInstance, err := migrate.NewWithSourceInstance("iofs", source, r.dsn)
 	if err != nil {
 		return fmt.Errorf("could not create migrations instance: %w", err)
 	}
 
-	err = migrations_instance.Up()
+	err = migrationsInstance.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("could not migrate up: %w", err)
 	}
@@ -60,7 +60,7 @@ func (r *SQLiteRepository) Create(ctx context.Context, snippet *domain.Snippet) 
 	}
 	defer tx.Rollback() //nolint:errcheck // no-op after commit
 
-	err = r.createWithTX(ctx, snippet, tx)
+	err = r.createWithTx(ctx, snippet, tx)
 	if err != nil {
 		return err
 	}
@@ -345,8 +345,8 @@ func (r *SQLiteRepository) createOrGetTag(ctx context.Context, name string, tx *
 	return &tag, nil
 }
 
-func (r *SQLiteRepository) linkTag(ctx context.Context, tag_id int, snippet_id int, tx *sql.Tx) error {
-	_, err := tx.ExecContext(ctx, "INSERT INTO snippet_tags (tag_id, snippet_id) VALUES (?, ?)", tag_id, snippet_id)
+func (r *SQLiteRepository) linkTag(ctx context.Context, tagID int, snippetID int, tx *sql.Tx) error {
+	_, err := tx.ExecContext(ctx, "INSERT INTO snippet_tags (tag_id, snippet_id) VALUES (?, ?)", tagID, snippetID)
 	if err != nil {
 		return fmt.Errorf("could not link tag to snippet: %w", err)
 	}
@@ -354,8 +354,8 @@ func (r *SQLiteRepository) linkTag(ctx context.Context, tag_id int, snippet_id i
 	return nil
 }
 
-func (r *SQLiteRepository) unlinkTag(ctx context.Context, tag_id int, snippet_id int, tx *sql.Tx) error {
-	_, err := tx.ExecContext(ctx, "DELETE FROM snippet_tags WHERE tag_id = ? AND snippet_id = ?", tag_id, snippet_id)
+func (r *SQLiteRepository) unlinkTag(ctx context.Context, tagID int, snippetID int, tx *sql.Tx) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM snippet_tags WHERE tag_id = ? AND snippet_id = ?", tagID, snippetID)
 
 	if err != nil {
 		return fmt.Errorf("could not unlink tag to snippet: %w", err)
@@ -388,7 +388,7 @@ func (r *SQLiteRepository) CreateBatch(ctx context.Context, snippets []*domain.S
 		}
 
 		// Create Snippet
-		err = r.createWithTX(ctx, snippet, tx)
+		err = r.createWithTx(ctx, snippet, tx)
 		if err != nil {
 			return nil, err
 		}
@@ -425,7 +425,7 @@ func (r *SQLiteRepository) searchForDuplicate(ctx context.Context, command strin
 	return false, nil
 }
 
-func (r *SQLiteRepository) createWithTX(ctx context.Context, snippet *domain.Snippet, tx *sql.Tx) error {
+func (r *SQLiteRepository) createWithTx(ctx context.Context, snippet *domain.Snippet, tx *sql.Tx) error {
 
 	snippetResult, err := tx.ExecContext(ctx, "INSERT INTO snippets (`command`, `description`) VALUES (?, ?)", snippet.Command, snippet.Description)
 

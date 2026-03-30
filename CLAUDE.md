@@ -5,12 +5,12 @@ CLI snippet manager for saving, tagging, searching, and executing shell commands
 ## Commands
 
 ```bash
-make build          # go build -o bin/cmdvault ./cmd/cmdvault
-make test           # go test -race -coverprofile=coverage.out ./...
-make lint           # golangci-lint run ./...
-make coverage       # go tool cover -html=coverage.out
-make install        # go install ./cmd/cmdvault
-make clean          # rm -rf bin/ coverage.out
+just build          # go build -o bin/cmdvault ./cmd/cmdvault
+just test           # go test -race -coverprofile=coverage.out ./...
+just lint           # golangci-lint run ./...
+just coverage       # go tool cover -html=coverage.out
+just install        # go install ./cmd/cmdvault
+just clean          # rm -rf bin/ coverage.out
 ```
 
 ## Architecture

@@ -37,7 +37,7 @@ Examples:
 		tags, _ := cmd.Flags().GetStringSlice("tags")
 
 		if command == "" && description == "" && len(tags) == 0 {
-			err := AddCommand_Interactive(&command, &description, &tags)
+			err := addCommandInteractive(&command, &description, &tags)
 
 			if err != nil {
 				return err
@@ -63,8 +63,8 @@ Examples:
 	},
 }
 
-// AddCommand_Interactive prompts the user for snippet details interactively.
-func AddCommand_Interactive(command *string, description *string, tags *[]string) error {
+// addCommandInteractive prompts the user for snippet details interactively.
+func addCommandInteractive(command *string, description *string, tags *[]string) error {
 	var tagsInput string
 
 	form := huh.NewForm(
