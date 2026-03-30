@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"errors"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"testing"
 	"time"
 

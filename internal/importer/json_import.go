@@ -2,7 +2,7 @@ package importer
 
 import (
 	"encoding/json"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"os"
 )
 

@@ -1,4 +1,4 @@
-[![CI](https://github.com/LucasJaiser/cmdSnipperVault/actions/workflows/ci.yml/badge.svg)](https://github.com/LucasJaiser/cmdSnipperVault/actions/workflows/ci.yml)
+[![CI](https://github.com/LucasJaiser/cmdSnippetVault/actions/workflows/ci.yml/badge.svg)](https://github.com/LucasJaiser/cmdSnippetVault/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 
@@ -24,8 +24,8 @@ A fast, local CLI snippet manager for saving, tagging, searching, and executing 
 Requires [Go 1.25+](https://go.dev/dl/) and [just](https://github.com/casey/just).
 
 ```bash
-git clone https://github.com/LucasJaiser/cmdSnipperVault.git
-cd cmdSnipperVault
+git clone https://github.com/LucasJaiser/cmdSnippetVault.git
+cd cmdSnippetVault
 just install
 ```
 

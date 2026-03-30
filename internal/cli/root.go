@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"lucasjaiser/goSnipperVault/internal/config"
-	"lucasjaiser/goSnipperVault/internal/service"
+	"lucasjaiser/goSnippetVault/internal/config"
+	"lucasjaiser/goSnippetVault/internal/service"
 
 	"github.com/spf13/cobra"
 )
@@ -18,9 +18,9 @@ var (
 	Cleanup        func()
 
 	rootCmd = &cobra.Command{
-		Use:   "cmdSnipperVault",
+		Use:   "cmdSnippetVault",
 		Short: "A CLI snippet manager for developers",
-		Long: `cmdSnipperVault is a CLI snippet manager for saving, tagging, searching,
+		Long: `cmdSnippetVault is a CLI snippet manager for saving, tagging, searching,
 and executing shell commands. Store frequently used commands with descriptions
 and tags, then quickly find and run them when needed.
 

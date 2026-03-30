@@ -3,7 +3,7 @@ package exporter
 import (
 	"encoding/json"
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"os"
 )
 

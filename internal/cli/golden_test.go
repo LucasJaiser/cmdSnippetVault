@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"testing"
 	"time"
 

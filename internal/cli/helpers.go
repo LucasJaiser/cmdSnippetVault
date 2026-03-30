@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"lucasjaiser/goSnipperVault/internal/clipboard"
-	"lucasjaiser/goSnipperVault/internal/domain"
-	"lucasjaiser/goSnipperVault/internal/exporter"
-	"lucasjaiser/goSnipperVault/internal/importer"
-	"lucasjaiser/goSnipperVault/internal/service"
-	"lucasjaiser/goSnipperVault/internal/storage/sqlite"
+	"lucasjaiser/goSnippetVault/internal/clipboard"
+	"lucasjaiser/goSnippetVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/exporter"
+	"lucasjaiser/goSnippetVault/internal/importer"
+	"lucasjaiser/goSnippetVault/internal/service"
+	"lucasjaiser/goSnippetVault/internal/storage/sqlite"
 
 	"github.com/charmbracelet/lipgloss"
 )

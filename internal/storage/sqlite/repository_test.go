@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"os"
 	"path/filepath"
 	"testing"

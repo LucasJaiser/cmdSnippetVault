@@ -8,7 +8,7 @@ lint:
 	golangci-lint run ./...
 
 build:
-	go build -ldflags "{{LDFLAGS}}" -o ./bin/csv ./cmd/cmdSnipperVault
+	go build -ldflags "{{LDFLAGS}}" -o ./bin/csv ./cmd/cmdSnippetVault
 
 test:
 	go test -race -coverprofile=coverage.out ./...
@@ -17,7 +17,7 @@ coverage:
 	go tool cover -html=coverage.out
 
 install:
-	go install -ldflags "{{LDFLAGS}}" ./cmd/cmdSnipperVault
+	go install -ldflags "{{LDFLAGS}}" ./cmd/cmdSnippetVault
 
 clean:
 	rm -rf ./bin coverage.out

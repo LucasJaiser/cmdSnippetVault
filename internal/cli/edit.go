@@ -30,7 +30,7 @@ are diffed and applied to the snippet.
 The editor is determined by the "editor" config option, falling back to nano.
 
 Examples:
-  cmdSnipperVault edit 42`,
+  cmdSnippetVault edit 42`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

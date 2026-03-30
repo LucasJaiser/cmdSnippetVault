@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 
 	"github.com/spf13/cobra"
 )
@@ -15,9 +15,9 @@ Results can be filtered by tag, paginated with limit and offset, and
 output as JSON for scripting.
 
 Examples:
-  cmdSnipperVault list
-  cmdSnipperVault list -t docker -l 10
-  cmdSnipperVault list --json --pretty`,
+  cmdSnippetVault list
+  cmdSnippetVault list -t docker -l 10
+  cmdSnippetVault list --json --pretty`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

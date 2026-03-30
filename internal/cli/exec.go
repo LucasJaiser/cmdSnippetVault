@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	templatevar "lucasjaiser/goSnipperVault/pkg"
+	templatevar "lucasjaiser/goSnippetVault/pkg"
 	"os"
 	"os/exec"
 	"strconv"
@@ -23,7 +23,7 @@ You will be asked to confirm before the command runs unless confirm_execute
 is disabled in your config.
 
 Examples:
-  cmdSnipperVault exec 42`,
+  cmdSnippetVault exec 42`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

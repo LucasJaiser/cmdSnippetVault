@@ -3,7 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -19,8 +19,8 @@ to the clipboard. The snippet's use count is incremented on each retrieval.
 Use --no-copy to display the snippet without copying to the clipboard.
 
 Examples:
-  cmdSnipperVault get 42
-  cmdSnipperVault get 42 --no-copy`,
+  cmdSnippetVault get 42
+  cmdSnippetVault get 42 --no-copy`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

@@ -17,9 +17,9 @@ command matches ranked highest.
 Results can be output as JSON for scripting and limited to a maximum count.
 
 Examples:
-  cmdSnipperVault search docker
-  cmdSnipperVault search "git log" --json --pretty
-  cmdSnipperVault search deploy -l 5`,
+  cmdSnippetVault search docker
+  cmdSnippetVault search "git log" --json --pretty
+  cmdSnippetVault search deploy -l 5`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

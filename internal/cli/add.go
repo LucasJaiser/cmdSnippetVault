@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"slices"
 	"strings"
 
@@ -20,8 +20,8 @@ and tags directly via flags, or omit them to enter an interactive prompt.
 Tags must be lowercase and comma-separated. Duplicate tags are not allowed.
 
 Examples:
-  cmdSnipperVault add -c "docker ps -a" -d "List all containers" -t docker,devops
-  cmdSnipperVault add`,
+  cmdSnippetVault add -c "docker ps -a" -d "List all containers" -t docker,devops
+  cmdSnippetVault add`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

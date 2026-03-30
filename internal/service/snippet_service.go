@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 )
 
 // SnippetService provides business logic for managing snippets.

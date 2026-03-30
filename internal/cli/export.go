@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 
 	"github.com/spf13/cobra"
 )
@@ -17,8 +17,8 @@ by tag to export only specific snippets, and specify the output file path.
 The format defaults to JSON and can be changed with the --format flag.
 
 Examples:
-  cmdSnipperVault export -o backup.json
-  cmdSnipperVault export -o docker.yaml -f yaml -t docker`,
+  cmdSnippetVault export -o backup.json
+  cmdSnippetVault export -o docker.yaml -f yaml -t docker`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

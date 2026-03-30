@@ -6,7 +6,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"

@@ -2,7 +2,7 @@ package exporter
 
 import (
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 	"os"
 
 	"gopkg.in/yaml.v3"

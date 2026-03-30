@@ -16,30 +16,30 @@ var CompletionCommand = &cobra.Command{
 To load completions:
 
 Bash:
-  $ source <(cmdSnipperVault completion bash)
+  $ source <(cmdSnippetVault completion bash)
   # To load completions for each session, execute once:
   # Linux:
-  $ cmdSnipperVault completion bash > /etc/bash_completion.d/cmdSnipperVault
+  $ cmdSnippetVault completion bash > /etc/bash_completion.d/cmdSnippetVault
   # macOS:
-  $ cmdSnipperVault completion bash > $(brew --prefix)/etc/bash_completion.d/cmdSnipperVault
+  $ cmdSnippetVault completion bash > $(brew --prefix)/etc/bash_completion.d/cmdSnippetVault
 
 Zsh:
   # If shell completion is not already enabled in your environment,
   # you will need to enable it. You can execute the following once:
   $ echo "autoload -U compinit; compinit" >> ~/.zshrc
   # To load completions for each session, execute once:
-  $ cmdSnipperVault completion zsh > "${fpath[1]}/_cmdSnipperVault"
+  $ cmdSnippetVault completion zsh > "${fpath[1]}/_cmdSnippetVault"
   # You will need to start a new shell for this setup to take effect.
 
 Fish:
-  $ cmdSnipperVault completion fish | source
+  $ cmdSnippetVault completion fish | source
   # To load completions for each session, execute once:
-  $ cmdSnipperVault completion fish > ~/.config/fish/completions/cmdSnipperVault.fish
+  $ cmdSnippetVault completion fish > ~/.config/fish/completions/cmdSnippetVault.fish
 
 PowerShell:
-  PS> cmdSnipperVault completion powershell | Out-String | Invoke-Expression
+  PS> cmdSnippetVault completion powershell | Out-String | Invoke-Expression
   # To load completions for every new session, run:
-  PS> cmdSnipperVault completion powershell > cmdSnipperVault.ps1
+  PS> cmdSnippetVault completion powershell > cmdSnippetVault.ps1
   # and source this file from your PowerShell profile.
 `,
 	Args:      cobra.ExactArgs(1),

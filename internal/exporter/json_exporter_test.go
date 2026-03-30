@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnippetVault/internal/domain"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

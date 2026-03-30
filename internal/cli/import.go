@@ -17,9 +17,9 @@ The file format is detected from the extension, or can be overridden with
 the --format flag. Use --dry-run to preview the import without saving.
 
 Examples:
-  cmdSnipperVault import snippets.yaml
-  cmdSnipperVault import snippets.txt --format json
-  cmdSnipperVault import snippets.yaml --dry-run`,
+  cmdSnippetVault import snippets.yaml
+  cmdSnippetVault import snippets.txt --format json
+  cmdSnippetVault import snippets.yaml --dry-run`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

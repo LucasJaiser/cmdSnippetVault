@@ -12,7 +12,7 @@ var ListTagsCommand = &cobra.Command{
 associated with each tag. Tags are displayed in alphabetical order.
 
 Examples:
-  cmdSnipperVault list tags`,
+  cmdSnippetVault list tags`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

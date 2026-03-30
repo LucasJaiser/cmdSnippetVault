@@ -1,4 +1,4 @@
-module lucasjaiser/goSnipperVault
+module lucasjaiser/goSnippetVault
 
 go 1.25.0
 

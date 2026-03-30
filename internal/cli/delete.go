@@ -17,8 +17,8 @@ var DeleteCommand = &cobra.Command{
 for confirmation unless the --force flag is provided.
 
 Examples:
-  cmdSnipperVault delete 42
-  cmdSnipperVault delete 42 --force`,
+  cmdSnippetVault delete 42
+  cmdSnippetVault delete 42 --force`,
 	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()

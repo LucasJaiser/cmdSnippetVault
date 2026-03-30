@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"lucasjaiser/goSnipperVault/internal/exporter"
-	"lucasjaiser/goSnipperVault/internal/importer"
+	"lucasjaiser/goSnippetVault/internal/exporter"
+	"lucasjaiser/goSnippetVault/internal/importer"
 
 	"github.com/stretchr/testify/assert"
 )

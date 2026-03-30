@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"lucasjaiser/goSnipperVault/internal/cli"
+	"lucasjaiser/goSnippetVault/internal/cli"
 )
 
 var (
