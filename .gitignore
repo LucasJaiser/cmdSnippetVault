@@ -33,3 +33,5 @@ go.work.sum
 
 bin/
 cmdvault.db
+# Added by goreleaser init:
+dist/
