@@ -17,8 +17,8 @@ import (
 
 // SQLiteRepository implements domain.SnippetRepository using SQLite.
 type SQLiteRepository struct {
-	db       *sql.DB
-	dsn      string
+	db      *sql.DB
+	dsn     string
 	fileDSN string
 }
 

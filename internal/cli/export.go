@@ -19,7 +19,7 @@ The format defaults to JSON and can be changed with the --format flag.
 Examples:
   cmdSnipperVault export -o backup.json
   cmdSnipperVault export -o docker.yaml -f yaml -t docker`,
-	Args:  cobra.ExactArgs(1),
+	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {

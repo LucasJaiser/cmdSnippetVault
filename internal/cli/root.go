@@ -18,7 +18,7 @@ var (
 	Cleanup        func()
 
 	rootCmd = &cobra.Command{
-		Use:     "cmdSnipperVault",
+		Use:   "cmdSnipperVault",
 		Short: "A CLI snippet manager for developers",
 		Long: `cmdSnipperVault is a CLI snippet manager for saving, tagging, searching,
 and executing shell commands. Store frequently used commands with descriptions

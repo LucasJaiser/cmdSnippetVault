@@ -24,7 +24,7 @@ is disabled in your config.
 
 Examples:
   cmdSnipperVault exec 42`,
-	Args:  cobra.ExactArgs(1),
+	Args: cobra.ExactArgs(1),
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := getService()
 		if err != nil {
