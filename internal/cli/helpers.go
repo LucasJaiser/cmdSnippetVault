@@ -3,6 +3,7 @@ package cli
 import (
 	"lucasjaiser/goSnipperVault/internal/clipboard"
 	"lucasjaiser/goSnipperVault/internal/domain"
+	"lucasjaiser/goSnipperVault/internal/exporter"
 	"lucasjaiser/goSnipperVault/internal/importer"
 	"lucasjaiser/goSnipperVault/internal/service"
 	"lucasjaiser/goSnipperVault/internal/storage/sqlite"
@@ -34,7 +35,7 @@ func getService() error {
 	return nil
 }
 
-func getImportForFileType(filename string, formatOverride string) domain.Import {
+func getImportForFileType(filename string, formatOverride string) domain.Importer {
 
 	if formatOverride == "" {
 		formatOverride = filepath.Ext(filename)
@@ -47,7 +48,24 @@ func getImportForFileType(filename string, formatOverride string) domain.Import 
 		return importer.NewYAMLImporter()
 	case "json", ".json":
 		return importer.NewJSONImporter()
+	default:
+		return importer.NewJSONImporter()
+
 	}
 
-	return nil
+}
+
+func getExporterForType(typeString string) domain.Exporter {
+
+	switch typeString {
+	case "yaml", ".yaml":
+		return exporter.NewYAMLExporter()
+	case "yml", ".yml":
+		return exporter.NewYAMLExporter()
+	case "json", ".json":
+		return exporter.NewJSONExporter()
+	default:
+		return exporter.NewJSONExporter()
+	}
+
 }

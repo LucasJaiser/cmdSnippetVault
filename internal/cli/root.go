@@ -69,6 +69,11 @@ func Init() {
 	ImportCommand.Flags().BoolP("dry-run", "d", false, "dont save just execute")
 	rootCmd.AddCommand(ImportCommand)
 
+	ExportCommand.Flags().StringP("format", "f", "", "Format of the output")
+	ExportCommand.Flags().StringP("tag", "t", "", "Export specific snippet with tag")
+	ExportCommand.Flags().StringP("output", "o", "", "define output file")
+	rootCmd.AddCommand(ExportCommand)
+
 	rootCmd.AddCommand(CompletionCommand)
 
 }

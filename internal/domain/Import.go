@@ -1,5 +1,5 @@
 package domain
 
-type Import interface {
+type Importer interface {
 	Read(string) ([]*Snippet, error)
 }
