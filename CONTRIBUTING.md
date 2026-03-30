@@ -1,4 +1,4 @@
-# Contributing to cmdvault
+# Contributing to cmdSnippetVault
 
 Thanks for your interest in contributing! This document covers the conventions and workflow for this project.
 
@@ -32,7 +32,7 @@ Thanks for your interest in contributing! This document covers the conventions a
 ## Project Structure
 
 ```
-cmd/cmdvault/main.go              Entry point, dependency wiring (composition root)
+cmd/cmdSnippetVault/main.go       Entry point, dependency wiring (composition root)
 internal/cli/                     Cobra command definitions (one file per command)
 internal/domain/                  Models, interfaces, errors (zero external deps)
 internal/service/                 Business logic

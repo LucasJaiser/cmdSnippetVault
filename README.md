@@ -2,7 +2,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 
-# cmdvault
+# cmdSnippetVault
 
 A fast, local CLI snippet manager for saving, tagging, searching, and executing shell commands. Built in Go with a layered architecture, SQLite storage, and a polished terminal UI.
 
@@ -33,37 +33,37 @@ just install
 
 ```bash
 just build
-./bin/csv --help
+./bin/cv --help
 ```
 
 ## Quick Start
 
 ```bash
 # Add a snippet interactively
-cmdvault add
+cmdSnippetVault add
 
 # Add a snippet with flags
-cmdvault add -c "docker ps -a --format 'table {{.Names}}\t{{.Status}}'" \
-             -d "List all containers with name and status" \
-             -t docker,devops
+cmdSnippetVault add -c "docker ps -a --format 'table {{.Names}}\t{{.Status}}'" \
+                    -d "List all containers with name and status" \
+                    -t docker,devops
 
 # Search your collection
-cmdvault search docker
+cmdSnippetVault search docker
 
 # Get a snippet by ID (copies to clipboard)
-cmdvault get 1
+cmdSnippetVault get 1
 
 # Execute a snippet directly
-cmdvault exec 1
+cmdSnippetVault exec 1
 
 # List all snippets
-cmdvault list
+cmdSnippetVault list
 
 # List snippets filtered by tag
-cmdvault list -t docker
+cmdSnippetVault list -t docker
 
 # List all tags
-cmdvault list tags
+cmdSnippetVault list tags
 ```
 
 ## Commands
@@ -88,9 +88,9 @@ Snippets can contain template variables using `{{name}}` syntax. When you execut
 
 ```bash
 # Save a parameterized command
-cmdvault add -c "ssh {{user}}@{{host}} -p {{port}}" -d "SSH into a server" -t ssh,remote
+cmdSnippetVault add -c "ssh {{user}}@{{host}} -p {{port}}" -d "SSH into a server" -t ssh,remote
 
-# When you run `cmdvault exec <id>`, it will prompt:
+# When you run `cmdSnippetVault exec <id>`, it will prompt:
 #   user> admin
 #   host> 192.168.1.100
 #   port> 22
@@ -118,16 +118,16 @@ Back up your collection or share snippets with others:
 
 ```bash
 # Export all snippets to YAML
-cmdvault export backup.yaml -f yaml
+cmdSnippetVault export backup.yaml -f yaml
 
 # Export only docker-related snippets
-cmdvault export docker.json -t docker
+cmdSnippetVault export docker.json -t docker
 
 # Import from a file (duplicates are skipped)
-cmdvault import snippets.yaml
+cmdSnippetVault import snippets.yaml
 
 # Preview an import without saving
-cmdvault import snippets.yaml --dry-run
+cmdSnippetVault import snippets.yaml --dry-run
 ```
 
 ### Import file format
@@ -156,22 +156,22 @@ cmdvault import snippets.yaml --dry-run
 
 ```bash
 # Bash
-source <(cmdvault completion bash)
+source <(cmdSnippetVault completion bash)
 
 # Zsh
-cmdvault completion zsh > "${fpath[1]}/_cmdvault"
+cmdSnippetVault completion zsh > "${fpath[1]}/_cmdSnippetVault"
 
 # Fish
-cmdvault completion fish | source
+cmdSnippetVault completion fish | source
 
 # PowerShell
-cmdvault completion powershell | Out-String | Invoke-Expression
+cmdSnippetVault completion powershell | Out-String | Invoke-Expression
 ```
 
 ## Architecture
 
 ```
-cmd/cmdvault/main.go              Entry point, dependency wiring
+cmd/cmdSnippetVault/main.go       Entry point, dependency wiring
 internal/cli/                     Cobra command definitions
 internal/domain/                  Models, interfaces, errors (zero external deps)
 internal/service/                 Business logic
@@ -190,7 +190,7 @@ Dependencies flow one direction: `main -> cli -> service -> domain <- storage`. 
 Requires [Go 1.25+](https://go.dev/dl/), [just](https://github.com/casey/just), and optionally [golangci-lint](https://golangci-lint.run/).
 
 ```bash
-just build       # Build binary to ./bin/csv
+just build       # Build binary to ./bin/cv
 just test        # Run tests with race detector
 just lint        # Run golangci-lint
 just coverage    # Open HTML coverage report

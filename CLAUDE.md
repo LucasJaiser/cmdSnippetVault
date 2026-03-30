@@ -1,15 +1,15 @@
-# cmdvault
+# cmdSnippetVault
 
 CLI snippet manager for saving, tagging, searching, and executing shell commands. Built in Go as a portfolio project demonstrating senior-level patterns.
 
 ## Commands
 
 ```bash
-just build          # go build -o bin/cmdvault ./cmd/cmdvault
+just build          # go build -o bin/cv ./cmd/cmdSnippetVault
 just test           # go test -race -coverprofile=coverage.out ./...
 just lint           # golangci-lint run ./...
 just coverage       # go tool cover -html=coverage.out
-just install        # go install ./cmd/cmdvault
+just install        # go install ./cmd/cmdSnippetVault
 just clean          # rm -rf bin/ coverage.out
 ```
 
@@ -18,7 +18,7 @@ just clean          # rm -rf bin/ coverage.out
 Strict layered architecture. Dependencies flow one direction only: `main.go → cli → service → storage interface → sqlite implementation`. No layer imports upward. The domain package imports nothing from this project.
 
 ```
-cmd/cmdvault/main.go          # Entry point. Wires dependencies, calls root command.
+cmd/cmdSnippetVault/main.go   # Entry point. Wires dependencies, calls root command.
 internal/cli/                  # Cobra command definitions. One file per command.
 internal/domain/               # Models (Snippet, ListFilter), interfaces, custom errors. Zero external deps.
 internal/service/              # Business logic. Depends on domain interfaces, never on concrete storage.
