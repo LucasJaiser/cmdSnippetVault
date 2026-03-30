@@ -69,6 +69,8 @@ func Init() {
 	ImportCommand.Flags().BoolP("dry-run", "d", false, "dont save just execute")
 	rootCmd.AddCommand(ImportCommand)
 
+	rootCmd.AddCommand(CompletionCommand)
+
 }
 
 func Execute() error {
