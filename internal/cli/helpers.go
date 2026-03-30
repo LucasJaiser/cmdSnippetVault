@@ -34,16 +34,18 @@ func getService() error {
 	return nil
 }
 
-func getImportForFileType(filename string) domain.Import {
+func getImportForFileType(filename string, formatOverride string) domain.Import {
 
-	extension := filepath.Ext(filename)
+	if formatOverride == "" {
+		formatOverride = filepath.Ext(filename)
+	}
 
-	switch extension {
-	case "yaml":
+	switch formatOverride {
+	case "yaml", ".yaml":
 		return importer.NewYAMLImporter()
-	case "yml":
+	case "yml", ".yml":
 		return importer.NewYAMLImporter()
-	case "json":
+	case "json", ".json":
 		return importer.NewJSONImporter()
 	}
 

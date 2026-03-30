@@ -24,9 +24,12 @@ var ImportCommand = &cobra.Command{
 			return fmt.Errorf("missing impport filename argmument")
 		}
 
+		formatOverride, _ := cmd.Flags().GetString("format")
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+
 		importFile := args[0]
 
-		importer := getImportForFileType(importFile)
+		importer := getImportForFileType(importFile, formatOverride)
 
 		if importer == nil {
 			return fmt.Errorf("wrong file type, only support yaml, yml, json")
@@ -37,7 +40,7 @@ var ImportCommand = &cobra.Command{
 			return err
 		}
 
-		stats, err := snippetService.CreateBatch(cmd.Context(), snippets)
+		stats, err := snippetService.CreateBatch(cmd.Context(), snippets, dryRun)
 		if err != nil {
 			return err
 		}

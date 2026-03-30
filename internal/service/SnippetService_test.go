@@ -695,13 +695,81 @@ func TestSnippetService_CreateBatch(t *testing.T) {
 				createBatch: tt.createBatchFn,
 			})
 
-			stats, err := svc.CreateBatch(context.Background(), tt.snippets)
+			stats, err := svc.CreateBatch(context.Background(), tt.snippets, false)
 
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.Nil(t, stats)
 				return
 			}
+			require.NoError(t, err)
+			require.NotNil(t, stats)
+			assert.Equal(t, tt.wantCreated, stats.Created)
+			assert.Equal(t, tt.wantDuplicates, stats.Duplicates)
+			assert.Equal(t, tt.wantRejected, stats.Rejected)
+		})
+	}
+}
+
+func TestSnippetService_CreateBatch_DryRun(t *testing.T) {
+	tests := []struct {
+		name           string
+		snippets       []*domain.Snippet
+		wantCreated    int
+		wantDuplicates int
+		wantRejected   int
+	}{
+		{
+			name: "reports valid count without calling repo",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "valid"},
+				{Command: "git status", Description: "also valid", Tags: []string{"git"}},
+			},
+			wantCreated:    2,
+			wantDuplicates: 0,
+			wantRejected:   0,
+		},
+		{
+			name: "filters invalid and reports rejected",
+			snippets: []*domain.Snippet{
+				{Command: "echo hello", Description: "valid"},
+				{Command: "", Description: "empty command"},
+				{Command: "git status", Tags: []string{"Shell"}},
+			},
+			wantCreated:    1,
+			wantDuplicates: 0,
+			wantRejected:   2,
+		},
+		{
+			name: "all invalid",
+			snippets: []*domain.Snippet{
+				{Command: "", Description: "no command"},
+				{Command: "", Description: "also empty"},
+			},
+			wantCreated:    0,
+			wantDuplicates: 0,
+			wantRejected:   2,
+		},
+		{
+			name:           "empty batch",
+			snippets:       []*domain.Snippet{},
+			wantCreated:    0,
+			wantDuplicates: 0,
+			wantRejected:   0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := newTestService(&mockRepository{
+				createBatch: func(_ context.Context, _ []*domain.Snippet) (*domain.ImportStatistics, error) {
+					t.Fatal("repo.CreateBatch should not be called in dry-run mode")
+					return nil, nil
+				},
+			})
+
+			stats, err := svc.CreateBatch(context.Background(), tt.snippets, true)
+
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Equal(t, tt.wantCreated, stats.Created)

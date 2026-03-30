@@ -115,7 +115,7 @@ func (s *SnippetService) ListTags(ctx context.Context) ([]*domain.TagWithCount, 
 	return tags, err
 }
 
-func (s *SnippetService) CreateBatch(ctx context.Context, snippets []*domain.Snippet) (*domain.ImportStatistics, error) {
+func (s *SnippetService) CreateBatch(ctx context.Context, snippets []*domain.Snippet, dryrun bool) (*domain.ImportStatistics, error) {
 	var rejected int
 	var clearToImport []*domain.Snippet
 
@@ -131,10 +131,20 @@ func (s *SnippetService) CreateBatch(ctx context.Context, snippets []*domain.Sni
 		clearToImport = append(clearToImport, snippet)
 	}
 
+	stats := &domain.ImportStatistics{
+		Created:    len(clearToImport),
+		Duplicates: 0,
+	}
+
 	// Execute Batch on validated snippets
-	stats, err := s.repo.CreateBatch(ctx, clearToImport)
-	if err != nil {
-		return nil, err
+	if !dryrun {
+
+		returnedStats, err := s.repo.CreateBatch(ctx, clearToImport)
+		if err != nil {
+			return nil, err
+		}
+
+		stats = returnedStats
 	}
 
 	stats.Rejected = rejected

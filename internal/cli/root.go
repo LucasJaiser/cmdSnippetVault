@@ -65,6 +65,10 @@ func Init() {
 	DeleteCommand.Flags().BoolP("force", "f", false, "Delete without confirming")
 	rootCmd.AddCommand(DeleteCommand)
 
+	ImportCommand.Flags().StringP("format", "f", "json", "Format of the input file")
+	ImportCommand.Flags().BoolP("dry-run", "d", false, "dont save just execute")
+	rootCmd.AddCommand(ImportCommand)
+
 }
 
 func Execute() error {
