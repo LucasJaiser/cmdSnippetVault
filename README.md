@@ -171,7 +171,7 @@ cmdvault completion powershell | Out-String | Invoke-Expression
 ## Architecture
 
 ```
-cmd/cmdvault/main.go             Entry point, dependency wiring
+cmd/cmdvault/main.go              Entry point, dependency wiring
 internal/cli/                     Cobra command definitions
 internal/domain/                  Models, interfaces, errors (zero external deps)
 internal/service/                 Business logic
@@ -180,7 +180,7 @@ internal/config/                  Viper-based configuration
 internal/clipboard/               Clipboard abstraction
 internal/importer/                JSON/YAML import
 internal/exporter/                JSON/YAML export
-internal/pkg/                     Template variable parser
+pkg/                              Template variable parser
 ```
 
 Dependencies flow one direction: `main -> cli -> service -> domain <- storage`. No layer imports upward.

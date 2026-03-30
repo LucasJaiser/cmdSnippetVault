@@ -32,7 +32,7 @@ Thanks for your interest in contributing! This document covers the conventions a
 ## Project Structure
 
 ```
-cmd/cmdvault/main.go             Entry point, dependency wiring (composition root)
+cmd/cmdvault/main.go              Entry point, dependency wiring (composition root)
 internal/cli/                     Cobra command definitions (one file per command)
 internal/domain/                  Models, interfaces, errors (zero external deps)
 internal/service/                 Business logic
@@ -41,7 +41,7 @@ internal/config/                  Viper-based configuration
 internal/clipboard/               Clipboard abstraction
 internal/importer/                JSON/YAML import
 internal/exporter/                JSON/YAML export
-internal/pkg/                     Template variable parser
+pkg/                              Template variable parser
 ```
 
 **Layered architecture** - dependencies flow one direction only:
